@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MODEL UNTUK PENGGUNA
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String
+  password      String // Nantinya akan di-hash
+  role          UserRole   @default(VOLUNTEER)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relasi: Event yang dibuat oleh user ini (jika dia ORGANIZER)
+  createdEvents Event[]    @relation("OrganizedEvents")
+
+  // Relasi: Event yang diikuti oleh user ini (jika dia VOLUNTEER)
+  attendingEvents EventsOnVolunteers[]
+}
+
+// MODEL UNTUK EVENT
+model Event {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  location    String
+  date        DateTime
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relasi: Siapa yang membuat event ini
+  organizerId String
+  organizer   User       @relation("OrganizedEvents", fields: [organizerId], references: [id])
+
+  // Relasi: Siapa saja volunteer yang mendaftar di event ini
+  volunteers  EventsOnVolunteers[]
+}
+
+// Tabel penghubung untuk relasi many-to-many antara User dan Event
+model EventsOnVolunteers {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  assignedAt DateTime @default(now())
+
+  @@id([userId, eventId])
+}
+
+// ENUM untuk Role Pengguna
+enum UserRole {
+  VOLUNTEER
+  ORGANIZER
+}

@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -- ENUM DEFINITIONS --
+
+enum OrganizerStatus {
+  pending
+  approved
+  rejected
+  suspended  
+  deactivated
+}
+
+enum CategoryType {
+  article
+  event
+}
+
+enum EventStatus {
+  upcoming
+  completed
+  full
+}
+
+
+// -- MODEL DEFINITIONS --
+
+model Volunteer {
+  volunteer_id      Int      @id @default(autoincrement()) @map("volunteer_id")
+  firstName         String   @map("first_name")
+  lastName          String   @map("last_name")
+  email             String   @unique
+  password          String
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  eventRegistrations EventRegistration[]
+  author             Author?
+}
+
+model Organizer {
+  organizer_id      Int             @id @default(autoincrement()) @map("organizer_id")
+  orgName           String          @map("org_name")
+  responsiblePerson String          @map("responsible_person")
+  email             String          @unique
+  password          String
+  phoneNumber       String          @map("phone_number")
+  website           String?
+  orgAddress        String          @map("org_address")
+  orgDescription    String          @map("org_description")
+  documentPath      String          @map("document_path")
+  status            OrganizerStatus @default(pending)
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  events            Event[]
+  author            Author?
+}
+
+model Admin {
+  admin_id  Int      @id @default(autoincrement()) @map("admin_id")
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  author    Author?
+}
+
+model Author {
+  author_id   Int      @id @default(autoincrement()) @map("author_id")
+  
+  volunteer   Volunteer? @relation(fields: [volunteer_id], references: [volunteer_id])
+  volunteer_id Int?      @unique @map("volunteer_id")
+  
+  organizer   Organizer? @relation(fields: [organizer_id], references: [organizer_id])
+  organizer_id Int?      @unique @map("organizer_id")
+
+  admin       Admin?     @relation(fields: [admin_id], references: [admin_id])
+  admin_id    Int?       @unique @map("admin_id")
+
+  articles    Article[]
+}
+
+model Category {
+  category_id   Int          @id @default(autoincrement()) @map("category_id")
+  categoryName  String       @map("category_name")
+  categoryType  CategoryType @map("category_type")
+
+  events        Event[]
+  articles      Article[]
+}
+
+model Event {
+  event_id             Int         @id @default(autoincrement()) @map("event_id")
+  organizer_id         Int         @map("organizer_id")
+  title                String
+  category_id          Int         @map("category_id")
+  maxParticipants      Int         @map("max_participants")
+  currentParticipants  Int         @default(0) @map("current_participants")
+  eventDate            DateTime    @db.Date @map("event_date")
+  eventTime            DateTime    @db.Time @map("event_time")
+  location             String
+  description          String
+  requiredItems        String?     @map("required_items")
+  providedItems        String?     @map("provided_items")
+  imagePath            String?     @map("image_path")
+  status               EventStatus @default(upcoming)
+  createdAt            DateTime    @default(now()) @map("created_at")
+
+  organizer            Organizer   @relation(fields: [organizer_id], references: [organizer_id], onDelete: Cascade)
+  category             Category    @relation(fields: [category_id], references: [category_id], onDelete: Restrict)
+  eventRegistrations   EventRegistration[]
+}
+
+model Article {
+  article_id  Int      @id @default(autoincrement()) @map("article_id")
+  author_id   Int      @map("author_id")
+  title       String
+  category_id Int      @map("category_id")
+  summary     String
+  content     String
+  imagePath   String?  @map("image_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  author      Author   @relation(fields: [author_id], references: [author_id], onDelete: Cascade)
+  category    Category @relation(fields: [category_id], references: [category_id], onDelete: Restrict)
+}
+
+model EventRegistration {
+  registration_id Int      @id @default(autoincrement()) @map("registration_id")
+  volunteer_id    Int      @map("volunteer_id")
+  event_id        Int      @map("event_id")
+  registeredAt    DateTime @default(now()) @map("registered_at")
+
+  volunteer       Volunteer @relation(fields: [volunteer_id], references: [volunteer_id], onDelete: Cascade)
+  event           Event     @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+
+  @@unique([volunteer_id, event_id])
+}

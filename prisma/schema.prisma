@@ -41,6 +41,7 @@ model Volunteer {
   lastName          String   @map("last_name")
   email             String   @unique
   password          String
+  profilePicture    String?  @map("profile_picture")
   createdAt         DateTime @default(now()) @map("created_at")
 
   eventRegistrations EventRegistration[]
@@ -59,6 +60,8 @@ model Organizer {
   orgDescription    String          @map("org_description")
   documentPath      String          @map("document_path")
   status            OrganizerStatus @default(pending)
+  profilePicture    String?         @map("profile_picture")
+  approvedAt        DateTime?       @map("approved_at")
   createdAt         DateTime        @default(now()) @map("created_at")
 
   events            Event[]

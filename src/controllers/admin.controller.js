@@ -46,4 +46,26 @@ const loginAdmin = async (req, res) => {
     }
 };
 
-module.exports = { registerAdmin, loginAdmin };
+const getDashboardStats = async (req, res) => {
+    try {
+        // Menghitung semua data secara bersamaan untuk efisiensi
+        const [articleCount, volunteerCount, organizerCount, pendingOrganizerCount] = await Promise.all([
+            prisma.article.count(),
+            prisma.volunteer.count(),
+            prisma.organizer.count(),
+            prisma.organizer.count({ where: { status: 'pending' } })
+        ]);
+
+        res.status(200).json({
+            totalArticles: articleCount,
+            totalVolunteers: volunteerCount,
+            totalOrganizers: organizerCount,
+            pendingOrganizers: pendingOrganizerCount, // <-- Data baru
+        });
+    } catch (error) {
+        console.error("Error getting dashboard stats:", error);
+        res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    }
+};
+
+module.exports = { registerAdmin, loginAdmin, getDashboardStats };

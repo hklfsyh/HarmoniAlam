@@ -8,13 +8,13 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 router.post('/register', registerVolunteer);
 router.post('/login', loginVolunteer);
+router.get('/profile', verifyVolunteer, getMyProfile);
+router.patch('/profile', verifyVolunteer, upload.single('image'), updateMyProfile);
+router.get('/my-registrations', verifyVolunteer, getMyRegistrations);
 
 // Rute GET (hanya untuk Admin)
 router.get('/', verifyAdmin, getAllVolunteers);
 router.get('/:id', verifyAdmin, getVolunteerById);
 
-router.get('/profile', verifyVolunteer, getMyProfile);
-router.patch('/profile', verifyVolunteer, upload.single('image'), updateMyProfile);
-router.get('/my-registrations', verifyVolunteer, getMyRegistrations);
 
 module.exports = router;

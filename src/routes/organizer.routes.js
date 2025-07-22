@@ -10,11 +10,15 @@ router.post('/register', upload.single('document'), registerOrganizer);
 router.post('/login', loginOrganizer);
 
 // RUTE BARU: Menggantikan rute approve yang lama
-// URL menjadi /api/organizer/:id/status
+router.get('/profile', verifyOrganizer, getMyProfile);
+router.patch('/profile', verifyOrganizer, upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'document', maxCount: 1 }
+]), updateMyProfile);
+
+//admin
 router.patch('/:id/status', verifyAdmin, updateOrganizerStatus);
 router.get('/', verifyAdmin, getAllOrganizers);
 router.get('/:id', verifyAdmin, getOrganizerById);
-router.get('/profile', verifyOrganizer, getMyProfile);
-router.patch('/profile', verifyOrganizer, upload.single('image'), updateMyProfile);
 
 module.exports = router;

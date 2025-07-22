@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { uploadToGCS, deleteFromGCS } = require('../utils/gcsUploader');
 
 const registerVolunteer = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;

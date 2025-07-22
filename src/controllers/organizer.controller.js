@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { uploadToGCS, deleteFromGCS } = require('../utils/gcsUploader');
 
 const registerOrganizer = async (req, res) => {
     // Ambil file dari request
@@ -252,7 +253,8 @@ const updateMyProfile = async (req, res) => {
     try {
         const organizerId = req.user.organizerId;
         const { orgName, responsiblePerson, password, phoneNumber, website, orgAddress, orgDescription } = req.body;
-        const file = req.file; // Ini adalah file profile picture
+        // req.file sekarang menjadi req.files
+        const files = req.files;
         const updateData = { orgName, responsiblePerson, phoneNumber, website, orgAddress, orgDescription };
 
         const existingProfile = await prisma.organizer.findUnique({ where: { organizer_id: organizerId } });
@@ -262,19 +264,30 @@ const updateMyProfile = async (req, res) => {
             updateData.password = await bcrypt.hash(password, 10);
         }
 
-        if (file) {
+        // Cek jika ada file gambar profil baru
+        if (files && files.image) {
+            const imageFile = files.image[0];
             if (existingProfile.profilePicture) {
                 await deleteFromGCS(existingProfile.profilePicture);
             }
-            // Gunakan orgName yang ada untuk path folder
             const folderPath = `organizer/${existingProfile.orgName.replace(/\s+/g, '_')}/`;
-            updateData.profilePicture = await uploadToGCS(file, folderPath);
+            updateData.profilePicture = await uploadToGCS(imageFile, folderPath);
+        }
+
+        // Cek jika ada file dokumen baru
+        if (files && files.document) {
+            const documentFile = files.document[0];
+            if (existingProfile.documentPath) {
+                await deleteFromGCS(existingProfile.documentPath);
+            }
+            const folderPath = `organizer/${existingProfile.orgName.replace(/\s+/g, '_')}/`;
+            updateData.documentPath = await uploadToGCS(documentFile, folderPath);
         }
 
         const updatedProfile = await prisma.organizer.update({
             where: { organizer_id: organizerId },
             data: updateData,
-            select: { orgName: true, responsiblePerson: true, email: true, profilePicture: true }
+            select: { orgName: true, responsiblePerson: true, email: true, profilePicture: true, documentPath: true }
         });
 
         res.status(200).json({ message: "Profil berhasil diubah", profile: updatedProfile });

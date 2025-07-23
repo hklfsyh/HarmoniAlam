@@ -5,6 +5,10 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import HeroEvent from '../components/HomeComponents/HeroEvent';
+import EventTerbaru from '../components/HomeComponents/EventTerbaru';
+import StatsSection from '../components/HomeComponents/StatsSection';
+import ArtikelTerbaru from '../components/HomeComponents/ArtikelTerbaru';
+import Ajakan from '../components/HomeComponents/Ajakan';
 
 const sliderImages = [
   '/slider1.png',
@@ -48,6 +52,10 @@ const HomePage: React.FC = () => {
         </div>
       </div>
       <HeroEvent />
+      <EventTerbaru />
+      <StatsSection/>
+      <ArtikelTerbaru />
+      <Ajakan />
     </>
   );
 };

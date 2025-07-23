@@ -1,11 +1,12 @@
 const express = require("express");
 const dotenv = require("dotenv");
-
+const cors = require('cors'); 
 // Inisialisasi
 dotenv.config();
 const app = express();
 
 // Middleware global
+app.use(cors());
 app.use(express.json());
 
 // Import Rute

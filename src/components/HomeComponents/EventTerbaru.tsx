@@ -45,7 +45,7 @@ const EventTerbaru: React.FC = () => {
         {/* Grid for Event Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {eventData.map((event, index) => (
-            <div key={index} className="border rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:-translate-y-2">
+            <div key={index} className="rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:-translate-y-2">
               {/* Card Image and Badge */}
               <div className="relative">
                 <img src={event.imageUrl} alt={event.title} className="w-full h-56 object-cover" />

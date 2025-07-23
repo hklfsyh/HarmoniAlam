@@ -1,12 +1,23 @@
 // src/components/DetailEventComponents/EventSidebar.tsx
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 const EventSidebar: React.FC = () => {
+  const { user, requireLogin } = useAuth();
+
+  const handleRegisterClick = () => {
+    if (user) {
+      // Di sini Anda bisa menambahkan logika pendaftaran event yang sesungguhnya
+      alert('Anda berhasil mendaftar untuk event ini!');
+    } else {
+      requireLogin();
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md sticky top-28">
       <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Bergabung dengan Event</h2>
       
-      {/* Progress Bar */}
       <div className="mb-4">
         <div className="flex justify-between items-center text-sm mb-1">
           <span className="font-semibold">Peserta Terdaftar</span>
@@ -17,7 +28,10 @@ const EventSidebar: React.FC = () => {
         </div>
       </div>
       
-      <button className="w-full bg-[#79B829] text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all mb-6">
+      <button 
+        onClick={handleRegisterClick}
+        className="w-full bg-[#79B829] text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all mb-6"
+      >
         Daftar Event
       </button>
 

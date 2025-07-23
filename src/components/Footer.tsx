@@ -25,7 +25,7 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-white mb-4">Tautan Cepat</h4>
             <ul className="space-y-3">
               <li><a href="#" className="hover:text-[#79B829] transition-colors">Beranda</a></li>
-              <li><a href="#" className="hover:text-[#79B829] transition-colors">Peta Aksi</a></li>
+              <li><a href="#" className="hover:text-[#79B829] transition-colors">Event</a></li>
               <li><a href="#" className="hover:text-[#79B829] transition-colors">Artikel</a></li>
             </ul>
           </div>

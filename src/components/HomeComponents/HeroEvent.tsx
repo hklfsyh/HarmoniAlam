@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowRight } from 'lucide-react'; // Import ikon panah
+import { Link } from 'react-router-dom';
 
 const HeroEvent: React.FC = () => {
   return (
@@ -22,12 +23,13 @@ const HeroEvent: React.FC = () => {
         </p>
 
         {/* Call to Action Button */}
-        <button
+        <Link
+          to="/event"
           className="mt-8 flex items-center gap-3 px-8 py-4 bg-[#1A3A53] text-white font-semibold rounded-lg shadow-lg transition-all duration-300 cursor-pointer hover:bg-[#79B829]"
         >
           Temukan Event yang Anda Sukai
           <ArrowRight className="h-5 w-5" />
-        </button>
+        </Link>
 
       </div>
     </section>

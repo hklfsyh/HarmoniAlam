@@ -1,7 +1,6 @@
 // src/components/EventComponents/HeroSection.tsx
 
 import React from 'react';
-import { Plus } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   return (
@@ -21,10 +20,6 @@ const HeroSection: React.FC = () => {
         <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
           Temukan dan bergabung dengan event kebersihan lingkungan di seluruh dunia
         </p>
-        <button className="mt-8 inline-flex items-center gap-2 bg-[#79B829] text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all transform hover:-translate-y-1">
-          <Plus className="h-5 w-5" />
-          Buat Event Baru
-        </button>
       </div>
     </section>
   );

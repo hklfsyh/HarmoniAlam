@@ -1,21 +1,58 @@
-// src/pages/EventsPage.tsx
-
-import React from 'react';
+import React, { useState } from 'react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import HeroSection from '../components/EventComponents/HeroSection';
 import FilterEvent from '../components/EventComponents/FilterEvent';
-import EventList from '../components/EventComponents/EventList'; // 1. IMPORT KOMPONEN
+import EventList from '../components/EventComponents/EventList';
+import SuccessModal from '../components/SuccessModal';
+import ErrorModal from '../components/ErrorModal';
 
 const EventsPage: React.FC = () => {
-  return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
-      <main className="flex-grow">
-        <HeroSection />
-        <FilterEvent />
-        <EventList /> {/* 2. LETAKKAN KOMPONEN DI SINI */}
-      </main>
-    </div>
+  const handleRegistrationSuccess = (message: string) => {
+    setModalMessage(message);
+    setIsSuccessModalOpen(true);
+  };
+
+  const handleRegistrationFailure = (message: string) => {
+    setModalMessage(message);
+    setIsErrorModalOpen(true);
+  };
+
+  return (
+    <>
+      <div className="bg-slate-50 min-h-screen">
+        <Navbar />
+        <main className="flex-grow">
+          <HeroSection />
+          <FilterEvent />
+          <EventList 
+            onSuccess={handleRegistrationSuccess}
+            onFailure={handleRegistrationFailure}
+          />
+        </main>
+        <Footer />
+      </div>
+
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        title="Pendaftaran Berhasil!"
+        message={modalMessage}
+        buttonText="Luar Biasa!"
+      />
+
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        title="Pendaftaran Gagal"
+        message={modalMessage}
+        buttonText="Coba Lagi"
+      />
+    </>
   );
 };
-
 export default EventsPage;

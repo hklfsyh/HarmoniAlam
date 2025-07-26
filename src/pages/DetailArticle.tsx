@@ -1,20 +1,44 @@
-// src/pages/DetailArticlePage.tsx
 import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import publicApi from '../API/publicApi';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import ArticleDetailHeader from '../components/DetailArticleComponents/ArticleDetailHeader';
 import ArticleDetailContent from '../components/DetailArticleComponents/ArticleDetailContent';
 
+const fetchArticleDetail = async (id: string) => {
+    const { data } = await publicApi.get(`/articles/${id}`);
+    return data;
+};
+
 const DetailArticlePage: React.FC = () => {
+  const { articleId } = useParams<{ articleId: string }>();
+
+  const { data: article, isLoading, isError, error } = useQuery({
+      queryKey: ['publicArticleDetail', articleId],
+      queryFn: () => fetchArticleDetail(articleId!),
+      enabled: !!articleId,
+  });
+
+  if (isLoading) {
+      return <div className="flex justify-center items-center h-screen">Memuat artikel...</div>;
+  }
+
+  if (isError) {
+      return <div className="flex justify-center items-center h-screen text-red-500">Gagal memuat artikel: {error.message}</div>;
+  }
+
   return (
     <div className="bg-slate-50 min-h-screen">
+      <Navbar />
       <main className="container mx-auto max-w-4xl py-12 px-6 mt-16">
         <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg">
-          <ArticleDetailHeader />
-          <div className="my-8">
-            <img src="/imageTemplateArticle.png" alt="Article visual" className="w-full h-auto max-h-[450px] object-cover rounded-lg" />
-          </div>
-          <ArticleDetailContent />
+          <ArticleDetailHeader article={article} />
+          <ArticleDetailContent article={article} />
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

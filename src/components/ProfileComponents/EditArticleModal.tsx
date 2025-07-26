@@ -1,79 +1,157 @@
-// src/components/ProfileComponents/EditArticleModal.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import adminApi from '../../API/admin';
+import { UploadCloud } from 'lucide-react';
 
-interface EditArticleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-// ... komponen FormField tetap sama ...
-type FormFieldProps = {
-  label: string;
-  value?: string;
-  multiline?: boolean;
-  type?: string;
+// --- Tipe Data ---
+type Category = {
+  category_id: number;
+  categoryName: string;
 };
 
-const FormField: React.FC<FormFieldProps> = ({ label, value, multiline = false, type = 'text' }) => (
-    <div>
-      <label className="block text-sm font-semibold text-gray-800 mb-2">{label}</label>
-      {multiline ? (
-        <textarea
-          defaultValue={value}
-          rows={type === 'textarea-lg' ? 8 : 4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-        ></textarea>
-      ) : (
-        <input
-          type={type}
-          defaultValue={value}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-        />
-      )}
-    </div>
-  );
+// --- Fungsi API ---
+const fetchArticleDetail = async (id: number) => {
+  const { data } = await adminApi.get(`/articles/${id}`);
+  return data;
+};
 
-const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose }) => {
+const fetchArticleCategories = async (): Promise<Category[]> => {
+  const { data } = await adminApi.get('/categories/articles');
+  return data;
+};
+
+const updateArticle = async ({ id, formData }: { id: number, formData: FormData }) => {
+  const { data } = await adminApi.patch(`/articles/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+};
+
+// --- Props Komponen ---
+interface AdminEditArticleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  articleId: number | null;
+  onSuccess: () => void;
+}
+
+const AdminEditArticleModal: React.FC<AdminEditArticleModalProps> = ({ isOpen, onClose, articleId, onSuccess }) => {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({ title: '', category_id: '', summary: '', content: '', status: 'draft' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const { data: articleData, isLoading: isLoadingArticle } = useQuery({
+    queryKey: ['articleDetail', articleId],
+    queryFn: () => fetchArticleDetail(articleId!),
+    enabled: !!articleId,
+  });
+
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
+    queryKey: ['articleCategories'],
+    queryFn: fetchArticleCategories,
+  });
+
+  useEffect(() => {
+    if (articleData) {
+      setFormData({
+        title: articleData.title,
+        // --- PERUBAHAN DI SINI: Konversi ID ke string ---
+        category_id: String(articleData.category_id),
+        summary: articleData.summary,
+        content: articleData.content,
+        status: articleData.status || 'draft',
+      });
+      setImagePreview(articleData.imagePath);
+    }
+  }, [articleData]);
+
+  const mutation = useMutation({
+    mutationFn: updateArticle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allArticles'] });
+      queryClient.invalidateQueries({ queryKey: ['articleDetail', articleId] });
+      onSuccess();
+    },
+    onError: (error: any) => { alert(`Gagal memperbarui artikel: ${error.message}`); }
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const submissionData = new FormData();
+    submissionData.append('title', formData.title);
+    submissionData.append('category_id', formData.category_id);
+    submissionData.append('summary', formData.summary);
+    submissionData.append('content', formData.content);
+    submissionData.append('status', formData.status);
+    if (imageFile) {
+      submissionData.append('image', imageFile);
+    }
+    mutation.mutate({ id: articleId!, formData: submissionData });
+  };
+
   if (!isOpen) return null;
 
   return (
-    // Saya perbaiki sedikit background overlaynya menjadi bg-black
     <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        
         <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Edit Artikel</h2>
-        <form className="space-y-6">
-            <FormField label="Judul Artikel" value="Tips Mengurangi Sampah Plastik di Rumah" />
-            <FormField label="Kategori Artikel" value="Tips Lingkungan" />
-            <FormField label="Ringkasan Artikel" value="Langkah sederhana yang bisa diterapkan setiap hari untuk mengurangi penggunaan plastik..." multiline />
-            <FormField label="Konten Artikel" value="Sampah plastik merupakan salah satu masalah lingkungan terbesar..." multiline type="textarea-lg" />
-            
+        {isLoadingArticle ? <p>Memuat data artikel...</p> : (
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div><label className="block text-sm font-semibold text-gray-800 mb-2">Judul Artikel</label><input name="title" value={formData.title} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Kategori Artikel</label>
+                <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg bg-white" disabled={isLoadingCategories}>
+                  <option value="">{isLoadingCategories ? 'Memuat...' : 'Pilih Kategori'}</option>
+                  {categories?.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.categoryName}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Status</label>
+                <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg bg-white">
+                  <option value="draft">Draft</option>
+                  <option value="publish">Publish</option>
+                </select>
+              </div>
+            </div>
+            <div><label className="block text-sm font-semibold text-gray-800 mb-2">Ringkasan Artikel</label><textarea name="summary" value={formData.summary} onChange={handleChange} rows={4} className="w-full px-4 py-2 border rounded-lg" /></div>
+            <div><label className="block text-sm font-semibold text-gray-800 mb-2">Konten Artikel</label><textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="w-full px-4 py-2 border rounded-lg" /></div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-2">Gambar</label>
-              <input type="file" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1A3A53] hover:file:bg-blue-100"/>
+              <div className="mt-1 flex items-center gap-4">
+                {imagePreview && <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />}
+                <label htmlFor="file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
+                  <UploadCloud size={24} className="mb-2" />
+                  <span>{imageFile ? imageFile.name : 'Klik untuk mengganti gambar'}</span>
+                  <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                </label>
+              </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex justify-end gap-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-[#79B829] text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
-              >
-                Simpan Perubahan
+              <button type="button" onClick={onClose} className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Batal</button>
+              <button type="submit" disabled={mutation.isPending} className="px-6 py-2 bg-[#79B829] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
+                {mutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </form>
+        )}
       </div>
     </div>
   );
 };
-
-export default EditArticleModal;
+export default AdminEditArticleModal;

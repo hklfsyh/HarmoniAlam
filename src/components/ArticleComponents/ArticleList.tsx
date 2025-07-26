@@ -1,24 +1,34 @@
-// src/components/ArticleComponents/ArticleList.tsx
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ArticleCard from './ArticleCard';
+import publicApi from '../../API/publicApi'; // Menggunakan API client publik
 
-const articlesData = Array(6).fill({
-  title: 'Tips Mengurangi Sampah Plastik di Rumah',
-  excerpt: 'Langkah sederhana yang bisa diterapkan setiap hari untuk mengurangi penggunaan plastik sekali pakai di rumah tangga. Mulai dari menggunakan tas belanja kain hingga...',
-  author: 'Haikal',
-  date: '20 Juli 2024',
-  category: 'Tips Lingkungan',
-  imageUrl: '/imageTemplateArticle.png',
-});
+// Fungsi untuk mengambil data artikel dari API
+const fetchArticles = async () => {
+    const { data } = await publicApi.get('/articles');
+    return data;
+};
 
 const ArticleList: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {articlesData.map((article, index) => (
-        <ArticleCard key={index} article={article} />
-      ))}
-    </div>
-  );
+    const { data: articles, isLoading, isError, error } = useQuery({
+        queryKey: ['publicArticles'],
+        queryFn: fetchArticles,
+    });
+
+    return (
+        <div>
+            {isLoading && <p className="text-center">Memuat artikel...</p>}
+            {isError && <p className="text-center text-red-500">Gagal memuat artikel: {error.message}</p>}
+
+            {articles && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {articles.map((article: any) => (
+                        <ArticleCard key={article.article_id} article={article} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default ArticleList;

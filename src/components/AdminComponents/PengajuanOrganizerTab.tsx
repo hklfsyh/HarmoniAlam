@@ -1,30 +1,93 @@
-// src/components/AdminComponents/PengajuanOrganizerTab.tsx
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Eye, Check, X, Search } from 'lucide-react';
+import adminApi from '../../API/admin';
+
+const fetchSubmissions = async () => {
+    const { data } = await adminApi.get('/organizer/submissions');
+    return data;
+};
+
+const getStatusStyles = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'approved': return 'bg-green-100 text-green-700';
+        case 'pending': return 'bg-yellow-100 text-yellow-700';
+        case 'rejected': return 'bg-red-100 text-red-700';
+        default: return 'bg-gray-100 text-gray-700';
+    }
+};
 
 interface PengajuanOrganizerTabProps {
-    onViewClick: () => void;
+    onViewClick: (id: number) => void;
+    onApprove: (id: number) => void;
+    onReject: (id: number) => void;
 }
 
-const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewClick }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="relative mb-6"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20}/><input type="text" placeholder="Cari..." className="w-full pl-12 pr-4 py-3 border rounded-lg"/></div>
-        <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Pengajuan Organizer</h2>
-        <div className="border rounded-lg text-sm"><div className="grid grid-cols-7 gap-4 px-4 py-2 bg-slate-50 font-semibold text-gray-500 border-b">
-            <div className="col-span-2">Pemohon</div><div>Organisasi</div><div>Kontak</div><div>Pengalaman</div><div>Tgl Pengajuan</div><div className="text-right">Aksi</div></div>
-            <div className="divide-y">
-                <div className="grid grid-cols-7 gap-4 px-4 py-3 items-center">
-                    <div className="col-span-2"><strong>Budi Santoso</strong><p className="text-xs">budi@ecojakarta.org</p></div>
-                    <div>EcoJakarta Community</div><div>+62 812-3456-7890</div><div>5 tahun</div><div>25 Juli 2024</div>
-                    <div className="flex items-center justify-end gap-2 text-gray-500">
-                        <button onClick={onViewClick} className="hover:text-blue-600"><Eye/></button> {/* Ganti di sini */}
-                        <button className="hover:text-green-600"><Check/></button>
-                        <button className="hover:text-red-600"><X/></button>
+const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewClick, onApprove, onReject }) => {
+    const { data: submissions, isLoading, isError, error } = useQuery({
+        queryKey: ['organizerSubmissions'],
+        queryFn: fetchSubmissions,
+    });
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="relative mb-6">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                <input
+                    type="text"
+                    placeholder="Cari nama Organizer......."
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm placeholder:text-gray-400 text-base"
+                    style={{ boxShadow: '0 2px 8px rgba(26,58,83,0.06)' }}
+                />
+            </div>
+            <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Pengajuan Organizer</h2>
+
+            {isLoading && <p>Memuat data...</p>}
+            {isError && <p className="text-red-500">Terjadi kesalahan: {error.message}</p>}
+
+            {submissions && (
+                <div className="border rounded-lg text-sm overflow-hidden">
+                    <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
+                        <div className="col-span-2">Pemohon</div>
+                        <div className="col-span-2">Organisasi</div>
+                        <div className="col-span-2">Kontak</div>
+                        <div className="col-span-2">Tgl Pengajuan</div>
+                        <div className="col-span-1 text-center">Status</div>
+                        <div className="col-span-1 text-center">Verifikasi</div>
+                        <div className="col-span-2 text-right">Aksi</div>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                        {submissions.map((submission: any) => (
+                            <div key={submission.organizer_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center">
+                                <div className="col-span-2 font-bold text-[#1A3A53]">{submission.responsiblePerson}</div>
+                                <div className="col-span-2 text-gray-700">{submission.orgName}</div>
+                                <div className="col-span-2 text-gray-500">{submission.phoneNumber}</div>
+                                <div className="col-span-2 text-gray-500">{new Date(submission.createdAt).toLocaleDateString('id-ID')}</div>
+                                <div className="col-span-1 text-center">
+                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusStyles(submission.status)}`}>
+                                        {submission.status}
+                                    </span>
+                                </div>
+                                <div className="col-span-1 text-center">
+                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${submission.isVerified ? 'bg-green-100 text-[#79B829]' : 'bg-gray-100 text-gray-600'}`}>
+                                        {submission.isVerified ? 'Terverifikasi' : 'Belum'}
+                                    </span>
+                                </div>
+                                <div className="col-span-2 flex items-center justify-end gap-2 text-gray-500">
+                                    <button onClick={() => onViewClick(submission.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
+                                    {submission.status === 'pending' && (
+                                        <>
+                                            <button onClick={() => onApprove(submission.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-green-600 transition-colors"><Check size={18} /></button>
+                                            <button onClick={() => onReject(submission.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"><X size={18} /></button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-                 {/* ... Tambah data lain jika perlu ... */}
-            </div>
+            )}
         </div>
-    </div>
-);
+    );
+};
 export default PengajuanOrganizerTab;

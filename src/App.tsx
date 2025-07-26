@@ -32,9 +32,9 @@ const App: React.FC = () => {
           {/* Rute Publik */}
           <Route path="/" element={<HomePage />} />
           <Route path="/event" element={<EventsPage />} />
-          <Route path="/event/detail" element={<DetailEventPage />} /> 
+          <Route path="/event/detail/:eventId" element={<DetailEventPage />} />
           <Route path="/artikel" element={<ArticlesPage />} />
-          <Route path="/artikel/detail" element={<DetailArticlePage />} />
+          <Route path="/artikel/detail/:articleId" element={<DetailArticlePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/organizer/pengajuan" element={<PengajuanOrgPage />} />

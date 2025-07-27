@@ -86,6 +86,47 @@ const verifyOrganizer = (req, res, next) => {
     });
 };
 
+const verifyOrganizerProfileAccess = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token == null) {
+        return res.status(401).json({ message: "Akses ditolak. Token tidak ditemukan." });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: "Token tidak valid." });
+        }
+        
+        if (decoded.type !== 'organizer' || !decoded.organizerId) {
+            return res.status(403).json({ message: "Akses ditolak. Token ini bukan milik organizer." });
+        }
+        
+        try {
+            const organizer = await prisma.organizer.findUnique({
+                where: { organizer_id: decoded.organizerId }
+            });
+
+            if (!organizer) {
+                return res.status(404).json({ message: "Organizer tidak ditemukan." });
+            }
+
+            // Izinkan akses jika statusnya adalah salah satu dari berikut ini
+            const allowedStatuses = ['pending', 'rejected', 'approved'];
+            if (!allowedStatuses.includes(organizer.status)) {
+                return res.status(403).json({ message: `Akses ditolak. Akun Anda saat ini berstatus '${organizer.status}'.` });
+            }
+            
+            req.user = decoded;
+            next();
+
+        } catch (error) {
+            return res.status(500).json({ message: "Kesalahan saat memverifikasi status organizer." });
+        }
+    });
+};
+
 const verifyVolunteer = (req, res, next) => {
     verifyToken(req, res, next, 'volunteer');
 };
@@ -194,11 +235,50 @@ const verifyOrganizerOrAdmin = async (req, res, next) => {
     }
 };
 
+const verifyEventOwner = async (req, res, next) => {
+    try {
+        const { id } = req.params; // ID Event
+        const user = req.user;     // Didapat dari middleware verifyAuthenticated
+
+        // Jika user adalah Admin, langsung izinkan
+        if (user.isAdmin) {
+            return next();
+        }
+
+        // Jika bukan admin, pastikan dia adalah organizer
+        if (!user.organizerId) {
+            return res.status(403).json({ message: "Akses ditolak. Anda bukan seorang organizer." });
+        }
+
+        // Cari event di database
+        const event = await prisma.event.findUnique({
+            where: { event_id: parseInt(id) },
+            select: { organizer_id: true }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: "Event tidak ditemukan." });
+        }
+
+        // Bandingkan ID pemilik event dengan ID organizer yang login
+        if (event.organizer_id === user.organizerId) {
+            return next(); // Izin diberikan
+        }
+
+        // Jika bukan keduanya, tolak
+        return res.status(403).json({ message: "Akses ditolak. Anda bukan pemilik event ini." });
+    } catch (error) {
+        console.error("Authorization error in verifyEventOwner:", error);
+        return res.status(500).json({ message: "Kesalahan otorisasi." });
+    }
+};
 module.exports = {
     verifyAdmin,
     verifyOrganizer,
     verifyVolunteer,
     verifyAuthenticated,
     verifyAuthorOrAdmin,
-    verifyOrganizerOrAdmin
+    verifyOrganizerOrAdmin,
+    verifyEventOwner,
+    verifyOrganizerProfileAccess
 };

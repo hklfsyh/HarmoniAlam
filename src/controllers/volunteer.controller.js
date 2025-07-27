@@ -1,31 +1,77 @@
 const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { sendVerificationEmail } = require('../utils/mailer');
 const { uploadToGCS, deleteFromGCS } = require('../utils/gcsUploader');
+const crypto = require('crypto');
 
 const registerVolunteer = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
+
     if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({ message: "Semua field harus diisi" });
     }
+
     try {
         const existingVolunteer = await prisma.volunteer.findUnique({ where: { email } });
         if (existingVolunteer) {
             return res.status(409).json({ message: "Email volunteer sudah terdaftar" });
         }
+
         const hashedPassword = await bcrypt.hash(password, 10);
+
         const newVolunteer = await prisma.$transaction(async (tx) => {
-            const volunteer = await tx.volunteer.create({ data: { firstName, lastName, email, password: hashedPassword } });
-            await tx.author.create({ data: { volunteer_id: volunteer.volunteer_id } });
+            const volunteer = await tx.volunteer.create({
+                data: { 
+                    firstName, 
+                    lastName, 
+                    email, 
+                    password: hashedPassword,
+                    isVerified: false
+                },
+            });
+
+            // --- PERBAIKAN DI SINI ---
+            // Buat profil penulis dan hubungkan ke volunteer baru
+            await tx.author.create({
+                data: {
+                    volunteer: {
+                        connect: {
+                            volunteer_id: volunteer.volunteer_id
+                        }
+                    }
+                }
+            });
+            // --------------------------
+
+            const token = crypto.randomBytes(32).toString('hex');
+            const expiresAt = new Date(Date.now() + 3600000); // 1 jam
+            await tx.verificationToken.create({
+                data: { 
+                    token, 
+                    expiresAt, 
+                    volunteerId: volunteer.volunteer_id 
+                }
+            });
+
+            await sendVerificationEmail(volunteer.email, token);
             return volunteer;
         });
+
         const { password: _, ...volunteerWithoutPassword } = newVolunteer;
-        res.status(201).json({ message: "Registrasi volunteer berhasil", volunteer: volunteerWithoutPassword });
+
+        res.status(201).json({ 
+            message: `Registrasi berhasil. Silakan cek email di ${newVolunteer.email} untuk verifikasi.`,
+            volunteer: volunteerWithoutPassword
+        });
+
     } catch (error) {
+        console.error(`Error in registerVolunteer: ${error.message}`);
         console.error(error);
         res.status(500).json({ message: "Terjadi kesalahan pada server" });
     }
 };
+
 
 const loginVolunteer = async (req, res) => {
     const { email, password } = req.body;
@@ -36,26 +82,47 @@ const loginVolunteer = async (req, res) => {
         const volunteer = await prisma.volunteer.findUnique({ where: { email } });
         if (!volunteer) return res.status(404).json({ message: "Email atau password salah" });
 
+        if (volunteer.status === 'DELETED') {
+            return res.status(403).json({ message: "Akun Anda sudah dihapus." });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, volunteer.password);
         if (!isPasswordValid) return res.status(401).json({ message: "Email atau password salah" });
+
+        // Tambahkan pengecekan verifikasi di sini
+        if (!volunteer.isVerified) {
+            return res.status(403).json({ message: "Akun belum diverifikasi. Silakan cek email Anda." });
+        }
 
         const token = jwt.sign({ volunteerId: volunteer.volunteer_id, type: 'volunteer' }, process.env.JWT_SECRET, { expiresIn: '24h' });
         res.status(200).json({ message: "Login berhasil", token: token });
     } catch (error) {
+        console.error(`Error in loginOrganizer: ${error.message}`);
         console.error(error);
-        res.status(500).json({ message: "Terjadi kesalahan pada server" });
+        res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }
 };
 
 const getAllVolunteers = async (req, res) => {
     try {
+        const { search } = req.query;
+        const whereClause = { status: { not: 'DELETED' } };
+
+        if (search) {
+            whereClause.OR = [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
         const volunteers = await prisma.volunteer.findMany({
+            where: whereClause,
             select: {
+                volunteer_id: true,
                 firstName: true,
                 lastName: true,
                 email: true,
                 createdAt: true,
-                // Hitung jumlah pendaftaran event yang terhubung dengan volunteer ini
                 _count: {
                     select: { eventRegistrations: true }
                 }
@@ -64,6 +131,7 @@ const getAllVolunteers = async (req, res) => {
 
         // Format ulang hasil agar lebih mudah dibaca di frontend
         const formattedVolunteers = volunteers.map(volunteer => ({
+            volunteer_id: volunteer.volunteer_id,
             firstName: volunteer.firstName,
             lastName: volunteer.lastName,
             email: volunteer.email,
@@ -77,54 +145,56 @@ const getAllVolunteers = async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }
 };
-// Melihat detail satu volunteer (Admin)
+
 // Melihat detail satu volunteer (Admin)
 const getVolunteerById = async (req, res) => {
     const { id } = req.params;
     const volunteerId = parseInt(id);
 
     try {
-        // Menjalankan semua query secara paralel
+        // Menjalankan query untuk profil dan semua pendaftaran secara paralel
         const [
             volunteer,
-            upcomingRegistrations,
-            completedRegistrations
+            allRegistrations
         ] = await Promise.all([
             // 1. Ambil data dasar volunteer + total event yang diikuti
             prisma.volunteer.findUnique({
-                where: { volunteer_id: volunteerId },
+                where: { 
+                    volunteer_id: volunteerId,
+                    status: { not: 'DELETED' } // Memastikan volunteer tidak dihapus
+                },
                 select: {
                     volunteer_id: true,
                     firstName: true,
                     lastName: true,
                     email: true,
                     createdAt: true,
+                    isVerified: true,
+                    profilePicture: true,
                     _count: {
                         select: { eventRegistrations: true }
                     }
                 }
             }),
-            // 2. Ambil daftar pendaftaran untuk event yang akan datang
+            // 2. Ambil semua pendaftaran event untuk volunteer ini dalam satu query
             prisma.eventRegistration.findMany({
                 where: {
                     volunteer_id: volunteerId,
-                    event: { status: 'upcoming' } // Filter berdasarkan status event
                 },
-                include: {
-                    event: { // Sertakan detail eventnya
-                        select: { event_id: true, title: true, eventDate: true }
+                orderBy: {
+                    event: {
+                        eventDate: 'desc' // Urutkan berdasarkan tanggal event terbaru
                     }
-                }
-            }),
-            // 3. Ambil daftar pendaftaran untuk event yang sudah selesai
-            prisma.eventRegistration.findMany({
-                where: {
-                    volunteer_id: volunteerId,
-                    event: { status: 'completed' } // Filter berdasarkan status event
                 },
                 include: {
                     event: {
-                        select: { event_id: true, title: true, eventDate: true }
+                        select: { 
+                            event_id: true, 
+                            title: true, 
+                            eventDate: true, 
+                            eventTime: true,
+                            status: true // <-- Status tetap diambil
+                        }
                     }
                 }
             })
@@ -134,7 +204,7 @@ const getVolunteerById = async (req, res) => {
             return res.status(404).json({ message: "Volunteer tidak ditemukan." });
         }
 
-        // Susun ulang data untuk response yang rapi
+        // 3. Susun ulang data untuk response yang rapi
         const response = {
             profile: {
                 volunteer_id: volunteer.volunteer_id,
@@ -142,12 +212,14 @@ const getVolunteerById = async (req, res) => {
                 lastName: volunteer.lastName,
                 email: volunteer.email,
                 createdAt: volunteer.createdAt,
+                isVerified: volunteer.isVerified,
+                profilePicture: volunteer.profilePicture,
             },
             stats: {
                 totalEventsParticipated: volunteer._count.eventRegistrations,
             },
-            upcomingEvents: upcomingRegistrations.map(reg => reg.event), // Ambil detail event saja
-            completedEvents: completedRegistrations.map(reg => reg.event), // Ambil detail event saja
+            // Gabungkan menjadi satu array
+            registeredEvents: allRegistrations.map(reg => reg.event),
         };
 
         res.status(200).json(response);
@@ -186,14 +258,14 @@ const updateMyProfile = async (req, res) => {
         const updateData = {};
 
         // Ambil data nama yang ada untuk path folder
-        const existingProfile = await prisma.volunteer.findUnique({ 
+        const existingProfile = await prisma.volunteer.findUnique({
             where: { volunteer_id: volunteerId },
-            select: { firstName: true, lastName: true, profilePicture: true } 
+            select: { firstName: true, lastName: true, profilePicture: true }
         });
         if (!existingProfile) {
             return res.status(404).json({ message: "Profil tidak ditemukan." });
         }
-        
+
         // Isi data teks yang akan diupdate
         if (firstName) updateData.firstName = firstName;
         if (lastName) updateData.lastName = lastName;

@@ -5,14 +5,19 @@ const {
     createCategory, 
     updateCategory, 
     deleteCategory, 
-    getAllCategories 
+    getAllCategories,
+    getEventCategories,   
+    getArticleCategories  
 } = require('../controllers/category.controller');
 
-// Hanya ada satu rute POST sekarang
+// --- Rute Admin ---
 router.post('/', verifyAdmin, createCategory);
-
 router.patch('/:id', verifyAdmin, updateCategory);
 router.delete('/:id', verifyAdmin, deleteCategory);
-router.get('/', getAllCategories);
+
+// --- Rute Publik ---
+router.get('/', getAllCategories); // Mendapatkan semua kategori (campuran)
+router.get('/events', getEventCategories); // <-- Rute baru hanya untuk event
+router.get('/articles', getArticleCategories); // <-- Rute baru hanya untuk artikel
 
 module.exports = router;

@@ -102,9 +102,36 @@ const getAllCategories = async (req, res) => {
     }
 };
 
+const getEventCategories = async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany({
+            where: { categoryType: 'event' }
+        });
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error("Error getting event categories:", error);
+        res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    }
+};
+
+// GET: Mendapatkan semua kategori dengan tipe 'article' (Publik)
+const getArticleCategories = async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany({
+            where: { categoryType: 'article' }
+        });
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error("Error getting article categories:", error);
+        res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    }
+};
+
 module.exports = {
     createCategory,
     updateCategory,
     deleteCategory,
-    getAllCategories
+    getAllCategories,
+    getEventCategories,
+    getArticleCategories
 };

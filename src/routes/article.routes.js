@@ -1,3 +1,5 @@
+// src/routes/article.routes.js
+
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
@@ -6,10 +8,11 @@ const {
     createArticle, 
     updateArticle, 
     deleteArticle,
+    getPublicArticles,
     getAllArticles,
     getMyArticles,
     getArticleById,
-    getPublicArticles
+    getLatestArticles // <-- Tambahkan import baru
 } = require('../controllers/article.controller');
 
 const upload = multer({
@@ -19,14 +22,14 @@ const upload = multer({
     },
 });
 
-// Rute GET
-// Penting: Rute yang lebih spesifik seperti '/all' dan '/my-articles' harus diletakkan SEBELUM rute '/:id'
+// --- Rute GET ---
 router.get('/', getPublicArticles);
-router.get('/all', verifyAdmin, getAllArticles); // Admin melihat semua artikel
-router.get('/my-articles', verifyAuthenticated, getMyArticles); // Pengguna melihat artikel miliknya
-router.get('/:id', getArticleById); // Publik melihat detail satu artikel
+router.get('/latest', getLatestArticles); // <-- Rute baru untuk 3 artikel terbaru
+router.get('/all', verifyAdmin, getAllArticles);
+router.get('/my-articles', verifyAuthenticated, getMyArticles); 
+router.get('/:id', getArticleById);
 
-// Rute POST, PATCH, DELETE
+// --- Rute POST, PATCH, DELETE ---
 router.post('/', verifyAuthenticated, upload.single('image'), createArticle);
 router.patch('/:id', verifyAuthenticated, verifyAuthorOrAdmin, upload.single('image'), updateArticle);
 router.delete('/:id', verifyAuthenticated, verifyAuthorOrAdmin, deleteArticle);

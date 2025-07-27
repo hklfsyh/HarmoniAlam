@@ -16,6 +16,8 @@ const adminRoutes = require('./routes/admin.routes');
 const categoryRoutes = require('./routes/category.routes');
 const articleRoutes = require('./routes/article.routes');
 const eventRoutes = require('./routes/event.routes');
+const authRoutes = require('./routes/auth.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 // Gunakan Rute dengan prefix
 app.use('/api/volunteer', volunteerRoutes);
@@ -24,7 +26,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/events', eventRoutes);
-
+app.use('/api/auth', authRoutes);
+app.use('/api/contact', contactRoutes);
 // Definisi Port
 const PORT = process.env.PORT || 3000;
 

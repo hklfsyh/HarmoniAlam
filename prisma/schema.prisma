@@ -17,8 +17,9 @@ enum OrganizerStatus {
   pending
   approved
   rejected
-  suspended  
+  suspended
   deactivated
+  DELETED 
 }
 
 enum CategoryType {
@@ -32,6 +33,16 @@ enum EventStatus {
   full
 }
 
+enum ArticleStatus {
+  draft
+  publish
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
 
 // -- MODEL DEFINITIONS --
 
@@ -41,11 +52,15 @@ model Volunteer {
   lastName          String   @map("last_name")
   email             String   @unique
   password          String
+  isVerified      Boolean  @default(false) @map("is_verified")
   profilePicture    String?  @map("profile_picture")
+  status            UserStatus  @default(ACTIVE)
   createdAt         DateTime @default(now()) @map("created_at")
 
   eventRegistrations EventRegistration[]
   author             Author?
+  verificationToken  VerificationToken?
+  passwordResetToken PasswordResetToken?
 }
 
 model Organizer {
@@ -59,13 +74,17 @@ model Organizer {
   orgAddress        String          @map("org_address")
   orgDescription    String          @map("org_description")
   documentPath      String          @map("document_path")
+  isVerified      Boolean  @default(false) @map("is_verified")
   status            OrganizerStatus @default(pending)
+  rejectionReason   String?         @map("rejection_reason")
   profilePicture    String?         @map("profile_picture")
   approvedAt        DateTime?       @map("approved_at")
   createdAt         DateTime        @default(now()) @map("created_at")
 
   events            Event[]
   author            Author?
+  verificationToken  VerificationToken?
+  passwordResetToken PasswordResetToken?
 }
 
 model Admin {
@@ -117,6 +136,7 @@ model Event {
   imagePath            String?     @map("image_path")
   status               EventStatus @default(upcoming)
   createdAt            DateTime    @default(now()) @map("created_at")
+  deletedAt            DateTime?   @map("deleted_at")
 
   organizer            Organizer   @relation(fields: [organizer_id], references: [organizer_id], onDelete: Cascade)
   category             Category    @relation(fields: [category_id], references: [category_id], onDelete: Restrict)
@@ -131,7 +151,9 @@ model Article {
   summary     String
   content     String
   imagePath   String?  @map("image_path")
+  status      ArticleStatus @default(draft)
   createdAt   DateTime @default(now()) @map("created_at")
+  deletedAt            DateTime?   @map("deleted_at")
 
   author      Author   @relation(fields: [author_id], references: [author_id], onDelete: Cascade)
   category    Category @relation(fields: [category_id], references: [category_id], onDelete: Restrict)
@@ -147,4 +169,28 @@ model EventRegistration {
   event           Event     @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
 
   @@unique([volunteer_id, event_id])
+}
+
+model VerificationToken {
+  id           Int      @id @default(autoincrement())
+  token        String   @unique
+  expiresAt    DateTime @map("expires_at")
+
+  volunteer    Volunteer? @relation(fields: [volunteerId], references: [volunteer_id])
+  volunteerId  Int?       @unique @map("volunteer_id")
+
+  organizer    Organizer? @relation(fields: [organizerId], references: [organizer_id])
+  organizerId  Int?       @unique @map("organizer_id")
+}
+
+model PasswordResetToken {
+  id           Int      @id @default(autoincrement())
+  token        String   @unique
+  expiresAt    DateTime @map("expires_at")
+
+  volunteer    Volunteer? @relation(fields: [volunteerId], references: [volunteer_id], onDelete: Cascade)
+  volunteerId  Int?       @unique @map("volunteer_id")
+
+  organizer    Organizer? @relation(fields: [organizerId], references: [organizer_id], onDelete: Cascade)
+  organizerId  Int?       @unique @map("organizer_id")
 }

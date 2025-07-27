@@ -1,10 +1,24 @@
+// src/routes/admin.routes.js
 const express = require('express');
 const router = express.Router();
-const { verifyAdmin } = require('../middleware/auth.middleware'); // <-- Pastikan verifyAdmin diimpor
-const { registerAdmin, loginAdmin, getDashboardStats  } = require('../controllers/admin.controller');
+const { verifyAdmin } = require('../middleware/auth.middleware');
+const { 
+    registerAdmin, 
+    loginAdmin,
+    getDashboardStats,
+    sendEmailToUser,
+    deleteUserAccount // <-- Import fungsi baru
+} = require('../controllers/admin.controller');
 
+// Rute otentikasi dan statistik
 router.post('/register', registerAdmin);
 router.post('/login', loginAdmin);
 router.get('/stats', verifyAdmin, getDashboardStats);
+
+// Rute untuk mengirim email
+router.post('/send-email', verifyAdmin, sendEmailToUser);
+
+// Rute baru untuk menghapus akun pengguna
+router.delete('/users/:userType/:id', verifyAdmin, deleteUserAccount);
 
 module.exports = router;

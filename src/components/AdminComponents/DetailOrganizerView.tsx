@@ -23,7 +23,8 @@ const DetailOrganizerView: React.FC<DetailOrganizerViewProps> = ({ onBack, organ
     if (isLoading) return <div className="p-8 text-center">Memuat detail organizer...</div>;
     if (isError) return <div className="p-8 text-center text-red-500">Terjadi kesalahan: {error.message}</div>;
 
-    const { profile, stats, upcomingEvents, completedEvents } = data;
+    const { profile, stats, upcomingEvents = [], completedEvents = [] } = data;
+    const allEvents = [...(Array.isArray(upcomingEvents) ? upcomingEvents : []), ...(Array.isArray(completedEvents) ? completedEvents : [])];
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -62,12 +63,26 @@ const DetailOrganizerView: React.FC<DetailOrganizerViewProps> = ({ onBack, organ
                     </div>
                     
                     <div>
-                        <h2 className="text-xl font-bold text-[#1A3A53] mb-4">Event Terbaru</h2>
+                        <h2 className="text-xl font-bold text-[#1A3A53] mb-4">Daftar Event</h2>
                         <div className="border rounded-lg text-sm divide-y">
-                            <div className="grid grid-cols-5 gap-4 px-4 py-2 bg-slate-50 font-semibold text-gray-500">
-                                <div className="col-span-2">Event</div><div>Lokasi</div><div>Partisipan</div><div>Status</div>
+                            <div className="grid grid-cols-6 gap-4 px-4 py-2 bg-slate-50 font-semibold text-gray-500">
+                                <div className="col-span-2">Event</div>
+                                <div>Lokasi</div>
+                                <div>Partisipan</div>
+                                <div>Status</div>
+                                <div>Tanggal</div>
                             </div>
-                            {completedEvents.length > 0 ? completedEvents.map(event => <div key={event.id}>...</div>) : <p className="p-4 text-gray-500">Tidak ada event selesai.</p>}
+                            {allEvents.length > 0 ? allEvents.map((event: any) => (
+                                <div key={event.event_id} className="grid grid-cols-6 gap-4 px-4 py-2 items-center">
+                                    <div className="col-span-2 font-semibold text-[#1A3A53]">{event.title}</div>
+                                    <div>{event.location || '-'}</div>
+                                    <div>{event.currentParticipants}/{event.maxParticipants}</div>
+                                    <div>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${event.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : event.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{event.status}</span>
+                                    </div>
+                                    <div>{event.eventDate ? new Date(event.eventDate).toLocaleDateString('id-ID') : '-'}</div>
+                                </div>
+                            )) : <p className="p-4 text-gray-500">Tidak ada event.</p>}
                         </div>
                     </div>
                 </div>

@@ -2,8 +2,6 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import publicApi from '../API/publicApi';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import ArticleDetailHeader from '../components/DetailArticleComponents/ArticleDetailHeader';
 import ArticleDetailContent from '../components/DetailArticleComponents/ArticleDetailContent';
 
@@ -31,14 +29,12 @@ const DetailArticlePage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      <Navbar />
       <main className="container mx-auto max-w-4xl py-12 px-6 mt-16">
         <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg">
           <ArticleDetailHeader article={article} />
           <ArticleDetailContent article={article} />
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

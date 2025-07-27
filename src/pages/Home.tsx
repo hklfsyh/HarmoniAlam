@@ -1,6 +1,8 @@
 // src/pages/HomePage.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -17,7 +19,16 @@ const sliderImages = [
   '/slider4.png',
 ];
 
+
 const HomePage: React.FC = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 900,
+      once: true,
+      offset: 80,
+    });
+  }, []);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -31,7 +42,7 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-      <div className="relative h-screen w-screen overflow-x-hidden overflow-y-hidden">
+      <div className="relative h-screen w-screen overflow-x-hidden overflow-y-hidden" data-aos="fade-up">
         <Slider {...settings} className="h-full w-full">
           {sliderImages.map((img, index) => (
             <div key={index} className="h-screen w-screen flex items-center justify-center overflow-hidden">
@@ -51,11 +62,21 @@ const HomePage: React.FC = () => {
           </p>
         </div>
       </div>
-      <HeroEvent />
-      <EventTerbaru />
-      <StatsSection/>
-      <ArtikelTerbaru />
-      <Ajakan />
+      <div data-aos="fade-up" data-aos-delay="100">
+        <HeroEvent />
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <EventTerbaru />
+      </div>
+      <div data-aos="fade-up" data-aos-delay="300">
+        <StatsSection/>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="400">
+        <ArtikelTerbaru />
+      </div>
+      <div data-aos="fade-up" data-aos-delay="500">
+        <Ajakan />
+      </div>
     </>
   );
 };

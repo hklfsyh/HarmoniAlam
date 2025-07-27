@@ -1,94 +1,156 @@
-// src/components/OrganizerComponents/EditOrganizerProfileModal.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import organizerApi from '../../API/organizer';
+import { UploadCloud } from 'lucide-react';
 
-interface EditOrganizerProfileModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-type FormFieldProps = {
-    label: string;
-    value?: string;
-    multiline?: boolean;
-    type?: string;
+// Fungsi API
+const fetchMyProfile = async () => {
+    const { data } = await organizerApi.get('/organizer/profile');
+    return data;
+};
+const updateMyProfile = async (formData: FormData) => {
+    const { data } = await organizerApi.patch('/organizer/profile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
 };
 
-const FormField: React.FC<FormFieldProps> = ({ label, value, multiline = false, type = 'text' }) => (
-    <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-1">{label}</label>
-        {multiline ? (
-            <textarea
-                defaultValue={value}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-            ></textarea>
-        ) : (
-            <input
-                type={type}
-                defaultValue={value}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-            />
-        )}
-    </div>
-);
+// Props
+interface EditOrganizerProfileModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (message: string) => void;
+}
 
-const EditOrganizerProfileModal: React.FC<EditOrganizerProfileModalProps> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
+const EditOrganizerProfileModal: React.FC<EditOrganizerProfileModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+      orgName: '', responsiblePerson: '',  phoneNumber: '',
+      website: '', orgAddress: '', orgDescription: ''
+  });
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    return (
-        <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50" style={{ backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Edit Profil Organizer</h2>
-                <form className="space-y-4">
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['organizerProfile'],
+    queryFn: fetchMyProfile,
+    enabled: isOpen,
+  });
 
-                    {/* Profile Picture Upload */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-1">Foto Profil</label>
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        orgName: profile.orgName || '',
+        responsiblePerson: profile.responsiblePerson || '',
+        phoneNumber: profile.phoneNumber || '',
+        website: profile.website || '',
+        orgAddress: profile.orgAddress || '',
+        orgDescription: profile.orgDescription || '',
+      });
+      setImagePreview(profile.profilePicture);
+    }
+  }, [profile]);
+
+  const mutation = useMutation({
+      mutationFn: updateMyProfile,
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
+          const successMessage = profile?.status === 'approved' 
+              ? "Profil Anda berhasil diperbarui."
+              : "Pengajuan Anda telah berhasil dikirim ulang dan akan ditinjau oleh admin.";
+          onSuccess(successMessage);
+      },
+      onError: (error: any) => { alert(`Gagal memperbarui profil: ${error.message}`); }
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'document') => {
+      if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          if (fileType === 'image') {
+              setProfilePictureFile(file);
+              setImagePreview(URL.createObjectURL(file));
+          } else {
+              setDocumentFile(file);
+          }
+      }
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const submissionData = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+        // Hanya kirim field yang diisi atau diubah
+        if (value && profile[key] !== value) {
+            submissionData.append(key, value);
+        }
+    });
+
+    if (profilePictureFile) submissionData.append('image', profilePictureFile);
+    if (documentFile) submissionData.append('document', documentFile);
+    
+    mutation.mutate(submissionData);
+  };
+
+  if (!isOpen) return null;
+
+  const getButtonText = () => {
+      if (mutation.isPending) return 'Menyimpan...';
+      if (profile?.status === 'approved') return 'Simpan Perubahan';
+      return 'Ajukan Ulang';
+  };
+
+  return (
+    <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Edit Profil Organizer</h2>
+        {isLoading ? <p>Memuat profil...</p> : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className="block text-sm font-semibold">Nama Organisasi</label><input name="orgName" value={formData.orgName} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                    <div><label className="block text-sm font-semibold">Penanggung Jawab</label><input name="responsiblePerson" value={formData.responsiblePerson} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className="block text-sm font-semibold">Nomor Telepon</label><input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                    <div><label className="block text-sm font-semibold">Website</label><input name="website" value={formData.website} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                </div>
+                <div><label className="block text-sm font-semibold">Alamat Organisasi</label><textarea name="orgAddress" value={formData.orgAddress} onChange={handleChange} rows={3} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                <div><label className="block text-sm font-semibold">Deskripsi Organisasi</label><textarea name="orgDescription" value={formData.orgDescription} onChange={handleChange} rows={5} className="w-full mt-1 px-4 py-2 border rounded-lg"/></div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className="block text-sm font-semibold">Ganti Foto Profil (Opsional)</label>
                         <div className="mt-1 flex items-center gap-4">
-                            <span className="inline-block h-20 w-20 rounded-lg overflow-hidden bg-gray-100">
-                                <img src="https://via.placeholder.com/150" alt="Current profile" className="h-full w-full object-cover" />
-                            </span>
-                            <label htmlFor="file-upload" className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50">
-                                <span>Ubah Gambar</span>
-                                <input id="file-upload" name="file-upload" type="file" className="sr-only" />
+                            {imagePreview && <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />}
+                            <label htmlFor="profilePicture-upload" className="flex-grow cursor-pointer ...">
+                                <UploadCloud size={24} className="mb-1"/>
+                                <span>{profilePictureFile ? profilePictureFile.name : 'Pilih file'}</span>
+                                <input id="profilePicture-upload" type="file" className="sr-only" onChange={(e) => handleFileChange(e, 'image')} accept="image/*" />
                             </label>
                         </div>
                     </div>
+                     <div><label className="block text-sm font-semibold">Ganti Dokumen (Opsional)</label>
+                        <label htmlFor="document-upload" className="mt-1 flex-grow cursor-pointer ...">
+                            <UploadCloud size={24} className="mb-1"/>
+                            <span>{documentFile ? documentFile.name : 'Pilih file'}</span>
+                            <input id="document-upload" type="file" className="sr-only" onChange={(e) => handleFileChange(e, 'document')} />
+                        </label>
+                    </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField label="Nama Organizer" value="Budi Susanto" />
-                        <FormField label="Nama Organisasi" value="EcoJakarta Community" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField label="Email" type="email" value="admin@ecojakarta.org" />
-                        <FormField label="Telepon" type="tel" value="+62 812-3456-7890" />
-                    </div>
-                    <FormField label="Website" value="https://www.ecojakarta.org" />
-                    <FormField label="Deskripsi Organisasi" value="Komunitas peduli lingkungan..." multiline />
-
-                    {/* Document Upload */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-1">Dokumen Legalitas (PDF)</label>
-                        <input
-                            type="file"
-                            accept=".pdf"
-                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1A3A53] hover:file:bg-blue-100"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Jika ada, unggah dokumen legalitas organisasi Anda.</p>
-                    </div>
-
-                    <div className="flex justify-end gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100">
-                            Batal
-                        </button>
-                        <button type="submit" className="px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90">
-                            Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
+                <div className="flex justify-end gap-4 pt-4">
+                  <button type="button" onClick={onClose} className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Batal</button>
+                  <button type="submit" disabled={mutation.isPending} className="px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
+                      {getButtonText()}
+                  </button>
+                </div>
+            </form>
+        )}
+      </div>
+    </div>
+  );
 };
-
 export default EditOrganizerProfileModal;

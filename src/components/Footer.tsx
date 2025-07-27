@@ -1,6 +1,7 @@
 // src/components/Footer.tsx
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Facebook, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -24,9 +25,9 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Tautan Cepat</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-[#79B829] transition-colors">Beranda</a></li>
-              <li><a href="#" className="hover:text-[#79B829] transition-colors">Event</a></li>
-              <li><a href="#" className="hover:text-[#79B829] transition-colors">Artikel</a></li>
+              <li><Link to="/" className="hover:text-[#79B829] transition-colors">Beranda</Link></li>
+              <li><Link to="/event" className="hover:text-[#79B829] transition-colors">Event</Link></li>
+              <li><Link to="/artikel" className="hover:text-[#79B829] transition-colors">Artikel</Link></li>
             </ul>
           </div>
 

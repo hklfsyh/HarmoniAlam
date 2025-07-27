@@ -5,7 +5,6 @@ import { ArrowLeft, Calendar, User } from 'lucide-react';
 
 // Fungsi untuk mengambil detail artikel dari API
 const fetchArticleDetail = async (id: number) => {
-    // Menggunakan endpoint publik karena volunteer tidak punya endpoint detail artikel sendiri
     const { data } = await volunteerApi.get(`/articles/${id}`);
     return data;
 };
@@ -13,9 +12,11 @@ const fetchArticleDetail = async (id: number) => {
 interface MyArticleDetailProps {
   articleId: number;
   onBack: () => void;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
-const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack }) => {
+const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack, onEdit, onDelete }) => {
     const { data: article, isLoading, isError, error } = useQuery({
         queryKey: ['myArticleDetail', articleId],
         queryFn: () => fetchArticleDetail(articleId),
@@ -28,10 +29,17 @@ const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack }) 
     return (
         <div>
             {/* Header Detail Artikel */}
-            <button onClick={onBack} className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-4">
-                <ArrowLeft size={20} />
-                Kembali ke Daftar Artikel
-            </button>
+            <div className="flex justify-between items-center mb-4">
+                <button onClick={onBack} className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold">
+                    <ArrowLeft size={20} />
+                    Kembali ke Daftar Artikel
+                </button>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => onEdit(article.article_id)} className="text-xs border px-3 py-1 rounded-md hover:bg-gray-100">Edit</button>
+                    <button onClick={() => onDelete(article.article_id)} className="text-xs border px-3 py-1 rounded-md text-red-600 border-red-300 hover:bg-red-50">Hapus</button>
+                </div>
+            </div>
+
             <div className="space-y-4">
                 <div>
                     <span className="bg-[#79B829] bg-opacity-20 text-white font-semibold px-3 py-1 rounded-full text-sm">

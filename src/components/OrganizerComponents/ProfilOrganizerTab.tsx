@@ -1,12 +1,58 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import organizerApi from '../../API/organizer';
-import { Link as LinkIcon, Globe, Camera } from 'lucide-react';
+import { Link as LinkIcon, Globe, Camera, ShieldCheck, Clock, AlertTriangle } from 'lucide-react';
+
+// Tambahkan interface untuk tipe data profil organizer
+interface OrganizerProfile {
+  profilePicture: string;
+  orgName: string;
+  responsiblePerson: string;
+  email: string;
+  phoneNumber: string;
+  orgAddress?: string;
+  approvedAt?: string;
+  createdAt?: string;
+  orgDescription: string;
+  website: string;
+  documentPath: string;
+  status: string;
+}
 
 // Fungsi untuk mengambil data profil organizer
-const fetchOrganizerProfile = async () => {
-    const { data } = await organizerApi.get('/organizer/profile');
+const fetchOrganizerProfile = async (): Promise<OrganizerProfile> => {
+    const { data } = await organizerApi.get<OrganizerProfile>('/organizer/profile');
     return data;
+};
+
+// Fungsi untuk mendapatkan style dan teks badge status
+const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'approved':
+            return (
+                <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <ShieldCheck size={16} />
+                    <span>Approved</span>
+                </div>
+            );
+        case 'pending':
+            return (
+                <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <Clock size={16} />
+                    <span>Pending</span>
+                </div>
+            );
+        case 'rejected':
+            return (
+                <div className="flex items-center gap-2 bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <AlertTriangle size={16} />
+                    <span>Rejected</span>
+                </div>
+            );
+        default:
+            return null;
+    }
 };
 
 interface ProfilOrganizerTabProps {
@@ -14,7 +60,7 @@ interface ProfilOrganizerTabProps {
 }
 
 const ProfilOrganizerTab: React.FC<ProfilOrganizerTabProps> = ({ onEditClick }) => {
-    const { data: profile, isLoading, isError, error } = useQuery({
+    const { data: profile, isLoading, isError, error } = useQuery<OrganizerProfile>({
         queryKey: ['organizerProfile'],
         queryFn: fetchOrganizerProfile,
     });
@@ -27,12 +73,18 @@ const ProfilOrganizerTab: React.FC<ProfilOrganizerTabProps> = ({ onEditClick }) 
         return <p className="p-4 text-center text-red-500">Terjadi kesalahan: {error.message}</p>;
     }
 
+    if (!profile) {
+        return <p className="p-4 text-center">Data profil tidak ditemukan.</p>;
+    }
+
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Profil Organizer</h2>
+            <div className="flex justify-between items-start mb-6">
+                <h2 className="text-2xl font-bold text-[#1A3A53]">Profil Organizer</h2>
+                {getStatusBadge(profile.status)}
+            </div>
             
             <div className="flex flex-col md:flex-row items-start gap-8">
-                {/* Profile Picture */}
                 <div className="flex-shrink-0">
                     {profile.profilePicture ? (
                         <img 
@@ -47,7 +99,6 @@ const ProfilOrganizerTab: React.FC<ProfilOrganizerTabProps> = ({ onEditClick }) 
                     )}
                 </div>
                 
-                {/* Info Section */}
                 <div className="flex-grow">
                     <div>
                         <h3 className="font-semibold text-lg mb-2">Informasi Dasar</h3>
@@ -56,7 +107,12 @@ const ProfilOrganizerTab: React.FC<ProfilOrganizerTabProps> = ({ onEditClick }) 
                             <p><strong>Organisasi:</strong> {profile.orgName}</p>
                             <p><strong>Email:</strong> {profile.email}</p>
                             <p><strong>Telepon:</strong> {profile.phoneNumber}</p>
-                            <p><strong>Bergabung Sejak:</strong> {new Date(profile.approvedAt).toLocaleDateString('id-ID')}</p>
+                            <p><strong>Address:</strong> {profile.orgAddress}</p>
+                            <p><strong>Bergabung Sejak:</strong> {
+                              profile.approvedAt || profile.createdAt
+                                ? new Date(profile.approvedAt || profile.createdAt as string).toLocaleDateString('id-ID')
+                                : '-'
+                            }</p>
                         </div>
                     </div>
                 </div>

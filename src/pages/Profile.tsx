@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ProfileSidebar from '../components/ProfileComponents/ProfileSidebar';
 import ProfileContent from '../components/ProfileComponents/ProfileContent';
 import EditProfileModal from '../components/ProfileComponents/EditProfileModal';
 import SuccessModal from '../components/SuccessModal';
 import ErrorModal from '../components/ErrorModal';
-import MyArticleEditModal from '../components/ProfileComponents/EditArticleModal';
+import EditArticleModal from '../components/EditArticleModal';
+import volunteerApi from '../API/volunteer';
+import ConfirmationModal from '../components/ConfirmationModal';
+
+// Fungsi API untuk menghapus artikel
+const deleteArticle = (articleId: number) => {
+    return volunteerApi.delete(`/articles/${articleId}`);
+};
 
 const ProfilePage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'event' | 'artikel'>('event');
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -15,6 +24,9 @@ const ProfilePage: React.FC = () => {
 
   const [isEditArticleModalOpen, setIsEditArticleModalOpen] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [articleToDeleteId, setArticleToDeleteId] = useState<number | null>(null);
 
   const handleEditProfileSuccess = () => {
     setIsEditProfileModalOpen(false);
@@ -40,6 +52,35 @@ const ProfilePage: React.FC = () => {
       setIsEditArticleModalOpen(true);
   };
 
+  const deleteMutation = useMutation({
+      mutationFn: deleteArticle,
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+          setIsDeleteModalOpen(false);
+          setArticleToDeleteId(null);
+          if (selectedArticleId) {
+              setSelectedArticleId(null);
+          }
+          setModalMessage("Artikel berhasil dihapus.");
+          setIsSuccessModalOpen(true);
+      },
+      onError: (error: any) => {
+          setIsDeleteModalOpen(false);
+          handleFailure(error.response?.data?.message || "Gagal menghapus artikel.");
+      }
+  });
+
+  const handleOpenDeleteModal = (id: number) => {
+      setArticleToDeleteId(id);
+      setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+      if (articleToDeleteId) {
+          deleteMutation.mutate(articleToDeleteId);
+      }
+  };
+
   return (
     <>
       <div className="bg-slate-50 min-h-screen">
@@ -53,6 +94,7 @@ const ProfilePage: React.FC = () => {
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab}
                 onEditArticle={handleOpenEditArticle}
+                onDeleteArticle={handleOpenDeleteModal}
               />
             </div>
           </div>
@@ -66,11 +108,13 @@ const ProfilePage: React.FC = () => {
         onFailure={handleFailure}
       />
 
-      <MyArticleEditModal
+      <EditArticleModal
         isOpen={isEditArticleModalOpen}
         onClose={() => setIsEditArticleModalOpen(false)}
         articleId={selectedArticleId}
         onSuccess={handleEditArticleSuccess}
+        api={volunteerApi}
+        queryKeyToInvalidate="myArticles"
       />
 
       <SuccessModal
@@ -87,6 +131,15 @@ const ProfilePage: React.FC = () => {
         title="Update Gagal"
         message={modalMessage}
         buttonText="Coba Lagi"
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan."
+        isConfirming={deleteMutation.isPending}
       />
     </>
   );

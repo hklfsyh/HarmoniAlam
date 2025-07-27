@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import adminApi from '../../API/admin';
-import { ArrowLeft, Calendar, Mail, Activity, TrendingUp, Camera } from 'lucide-react';
+import { ArrowLeft, Calendar, Mail, Camera } from 'lucide-react';
 
 interface DetailVolunteerViewProps {
   onBack: () => void;
@@ -13,12 +13,26 @@ const fetchVolunteerDetail = async (id: number) => {
     return data;
 };
 
-const EventItemCard = ({ title, date, hours }) => (
+const getEventStatusStyles = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'upcoming':
+            return 'bg-blue-100 text-blue-700';
+        case 'completed':
+            return 'bg-green-100 text-green-700';
+        default:
+            return 'bg-gray-100 text-gray-700';
+    }
+};
+
+const EventItemCard = ({ title, date, hours, status }: { title: string; date: string; hours: string; status: string }) => (
     <div className="flex justify-between items-center p-3 border rounded-lg bg-slate-50">
         <div>
             <p className="font-semibold text-sm text-[#1A3A53]">{title}</p>
             <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <Calendar size={14} /><span>{date}</span>
+                {status && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${getEventStatusStyles(status)}`}>{status}</span>
+                )}
             </div>
         </div>
         <div className="text-right">
@@ -38,7 +52,7 @@ const DetailVolunteerView: React.FC<DetailVolunteerViewProps> = ({ onBack, volun
     if (isLoading) return <div className="p-8 text-center">Memuat detail volunteer...</div>;
     if (isError) return <div className="p-8 text-center text-red-500">Terjadi kesalahan: {error.message}</div>;
 
-    const { profile, stats, upcomingEvents, completedEvents } = data;
+    const { profile, stats, registeredEvents } = data;
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -56,15 +70,21 @@ const DetailVolunteerView: React.FC<DetailVolunteerViewProps> = ({ onBack, volun
                         <Calendar size={32} className="text-gray-400"/>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-[#1A3A53] mb-4 flex items-center gap-2"><TrendingUp size={20}/> Event Terbaru yang Diikuti</h2>
+                        <h2 className="text-xl font-bold text-[#1A3A53] mb-4 flex items-center gap-2"><Calendar size={20}/> Event Yang Diikuti</h2>
                         <div className="space-y-3">
-                            {completedEvents.length > 0 ? completedEvents.map((event: any, index: number) => <EventItemCard key={index} title={event.title} date={event.date} hours="N/A" />) : <p className="text-sm text-gray-500">Belum ada event yang diikuti.</p>}
-                        </div>
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-[#1A3A53] mb-4 flex items-center gap-2"><Calendar size={20}/> Event Mendatang</h2>
-                        <div className="space-y-3">
-                            {upcomingEvents.length > 0 ? upcomingEvents.map((event: any, index: number) => <EventItemCard key={index} title={event.title} date={event.date} hours="N/A" />) : <p className="text-sm text-gray-500">Tidak ada event mendatang.</p>}
+                            {Array.isArray(registeredEvents) && registeredEvents.length > 0 ? (
+                                registeredEvents.map((event: any) => (
+                                    <EventItemCard
+                                        key={event.event_id}
+                                        title={event.title}
+                                        date={event.eventDate ? new Date(event.eventDate).toISOString().slice(0, 10) : ''}
+                                        hours={event.eventTime ? new Date(event.eventTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                        status={event.status}
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-sm text-gray-500">Tidak ada event terdaftar.</p>
+                            )}
                         </div>
                     </div>
                 </div>

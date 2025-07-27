@@ -1,22 +1,48 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Eye, X, Search, Calendar } from 'lucide-react';
+import { Eye, Mail, X, Search, Calendar } from 'lucide-react';
 import adminApi from '../../API/admin';
 
-const fetchOrganizers = async () => {
-    const { data } = await adminApi.get('/organizer');
-    return Array.isArray(data) ? data : [data]; 
+const fetchOrganizers = async (search: string = "") => {
+    const endpoint = search ? `/organizer?search=${encodeURIComponent(search)}` : '/organizer';
+    const { data } = await adminApi.get(endpoint);
+    return Array.isArray(data) ? data : [data];
 };
+
+// Tipe data untuk organizer
+interface Organizer {
+    organizer_id: number;
+    orgName: string;
+    website: string;
+    responsiblePerson: string;
+    email: string;
+    approvedAt: string;
+    totalEvents: number;
+}
 
 interface OrganizersTabProps {
     onViewClick: (id: number) => void;
+    onSendEmailClick: (organizer: Organizer) => void;
+    onDeleteClick: (id: number) => void;
 }
 
-const OrganizersTab: React.FC<OrganizersTabProps> = ({ onViewClick }) => {
-    const { data: organizers, isLoading, isError, error } = useQuery({
-        queryKey: ['organizers'],
-        queryFn: fetchOrganizers,
+const OrganizersTab: React.FC<OrganizersTabProps> = ({ onViewClick, onSendEmailClick, onDeleteClick }) => {
+    const [search, setSearch] = React.useState("");
+    const [debouncedSearch, setDebouncedSearch] = React.useState("");
+
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    const { data: organizersRaw, isLoading, isError, error } = useQuery({
+        queryKey: ['organizers', debouncedSearch],
+        queryFn: () => fetchOrganizers(debouncedSearch),
     });
+    
+    const organizers: Organizer[] = Array.isArray(organizersRaw) ? organizersRaw : [];
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -25,6 +51,8 @@ const OrganizersTab: React.FC<OrganizersTabProps> = ({ onViewClick }) => {
                 <input
                     type="text"
                     placeholder="Cari nama organisasi......."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm placeholder:text-gray-400 text-base"
                     style={{ boxShadow: '0 2px 8px rgba(26,58,83,0.06)' }}
                 />
@@ -34,19 +62,19 @@ const OrganizersTab: React.FC<OrganizersTabProps> = ({ onViewClick }) => {
             {isLoading && <p>Memuat data organizers...</p>}
             {isError && <p className="text-red-500">Terjadi kesalahan: {error.message}</p>}
 
-            {organizers && (
-                <div className="border rounded-lg text-sm overflow-hidden">
-                    <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
-                        <div className="col-span-3">Organisasi</div>
-                        <div className="col-span-2">Organizer</div>
-                        <div className="col-span-3">Email</div>
-                        <div className="col-span-2">Bergabung</div>
-                        <div className="col-span-1 text-center">Total Event</div>
-                        <div className="col-span-1 text-right">Aksi</div>
-                    </div>
-                    
-                    <div className="divide-y divide-gray-100">
-                        {organizers.map((org: any) => (
+            <div className="border rounded-lg text-sm overflow-hidden">
+                <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
+                    <div className="col-span-3">Organisasi</div>
+                    <div className="col-span-2">Organizer</div>
+                    <div className="col-span-3">Email</div>
+                    <div className="col-span-1 text-center">Total Event</div>
+                    <div className="col-span-2">Bergabung</div>
+                    <div className="col-span-1 text-right">Aksi</div>
+                </div>
+                
+                <div className="divide-y divide-gray-100">
+                    {organizers.length > 0 ? (
+                        organizers.map((org: Organizer) => (
                             <div key={org.organizer_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center">
                                 <div className="col-span-3">
                                     <p className="font-bold text-[#1A3A53]">{org.orgName}</p>
@@ -54,20 +82,23 @@ const OrganizersTab: React.FC<OrganizersTabProps> = ({ onViewClick }) => {
                                 </div>
                                 <div className="col-span-2 text-gray-700">{org.responsiblePerson}</div>
                                 <div className="col-span-3 text-gray-500">{org.email}</div>
+                                <div className="col-span-1 font-medium text-center">{org.totalEvents}</div>
                                 <div className="col-span-2 text-gray-500 flex items-center gap-2">
                                     <Calendar size={16}/>
                                     {new Date(org.approvedAt).toLocaleDateString('id-ID')}
                                 </div>
-                                <div className="col-span-1 font-medium text-center">{org.totalEvents}</div>
                                 <div className="col-span-1 flex items-center justify-end gap-2 text-gray-500">
                                     <button onClick={() => onViewClick(org.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"><Eye size={18}/></button>
-                                    <button className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"><X size={18}/></button>
+                                    <button onClick={() => onSendEmailClick(org)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-green-600 transition-colors" title="Kirim Email"><Mail size={18}/></button>
+                                    <button onClick={() => onDeleteClick(org.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"><X size={18}/></button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 text-gray-500">Tidak ada organizer ditemukan.</div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 };

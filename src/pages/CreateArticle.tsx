@@ -4,6 +4,7 @@ import { ArrowLeft, UploadCloud } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../API/admin';
 import SuccessModal from '../components/SuccessModal';
+import ErrorModal from '../components/ErrorModal';
 
 type Category = {
   category_id: number;
@@ -11,8 +12,8 @@ type Category = {
 };
 
 const fetchArticleCategories = async (): Promise<Category[]> => {
-  const { data } = await api.get('/categories/articles');
-  return data;
+  const { data } = await api.get<{ articles: Category[] }>('/categories/articles');
+  return data.articles;
 };
 
 const createArticle = async (formData: FormData) => {
@@ -37,6 +38,8 @@ const CreateArticlePage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
     queryKey: ['articleCategories'],
@@ -51,8 +54,15 @@ const CreateArticlePage: React.FC = () => {
       setSuccessMessage(status === 'draft' ? 'Artikel berhasil disimpan sebagai draft.' : 'Artikel berhasil dipublikasikan.');
       setIsSuccessModalOpen(true);
     },
-    onError: (error: any) => {
-      alert(`Terjadi kesalahan: ${error.response?.data?.message || error.message}`);
+    onError: (error: unknown) => {
+      let message = 'Terjadi kesalahan saat membuat artikel.';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        message = (error.response.data as { message?: string }).message || message;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        message = (error as { message?: string }).message || message;
+      }
+      setErrorMessage(message);
+      setIsErrorModalOpen(true);
     },
   });
 
@@ -65,8 +75,10 @@ const CreateArticlePage: React.FC = () => {
   };
 
   const handleSubmit = (status: 'publish' | 'draft') => {
-    if (!image || !categoryId || !title) {
-      alert('Judul, Kategori, dan Gambar wajib diisi.');
+    // Validasi semua field wajib diisi
+    if (!title.trim() || !summary.trim() || !content.trim() || !categoryId || !image) {
+      setErrorMessage('Semua field wajib diisi. Judul, Kategori, Ringkasan, Konten, dan Gambar tidak boleh kosong.');
+      setIsErrorModalOpen(true);
       return;
     }
 
@@ -185,6 +197,13 @@ const CreateArticlePage: React.FC = () => {
         title="Berhasil!"
         message={successMessage}
         buttonText="Selesai"
+      />
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        title="Gagal!"
+        message={errorMessage}
+        buttonText="Tutup"
       />
     </>
   );

@@ -1,10 +1,25 @@
-import React from 'react';
+// Tipe data untuk pengajuan organizer
+interface OrganizerSubmission {
+    organizer_id: number;
+    responsiblePerson: string;
+    orgName: string;
+    phoneNumber: string;
+    createdAt: string;
+    status: string;
+    isVerified: boolean;
+}
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Eye, Check, X, Search } from 'lucide-react';
 import adminApi from '../../API/admin';
 
-const fetchSubmissions = async () => {
-    const { data } = await adminApi.get('/organizer/submissions');
+const fetchSubmissions = async (search: string = "", status: string = "") => {
+    let endpoint = '/organizer/submissions';
+    const params = [];
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (status) params.push(`status=${encodeURIComponent(status)}`);
+    if (params.length > 0) endpoint += `?${params.join('&')}`;
+    const { data } = await adminApi.get(endpoint);
     return data;
 };
 
@@ -24,40 +39,69 @@ interface PengajuanOrganizerTabProps {
 }
 
 const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewClick, onApprove, onReject }) => {
-    const { data: submissions, isLoading, isError, error } = useQuery({
-        queryKey: ['organizerSubmissions'],
-        queryFn: fetchSubmissions,
+
+    const [search, setSearch] = useState("");
+    const [status, setStatus] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    // Debounce search input
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    const { data: submissionsRaw, isLoading, isError, error } = useQuery({
+        queryKey: ['organizerSubmissions', debouncedSearch, status],
+        queryFn: () => fetchSubmissions(debouncedSearch, status),
     });
+    // Make sure submissions is always an array
+    const submissions: OrganizerSubmission[] = Array.isArray(submissionsRaw) ? submissionsRaw : [];
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
-                <input
-                    type="text"
-                    placeholder="Cari nama Organizer......."
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm placeholder:text-gray-400 text-base"
-                    style={{ boxShadow: '0 2px 8px rgba(26,58,83,0.06)' }}
-                />
+            <div className="relative mb-6 flex gap-4 items-center">
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                    <input
+                        type="text"
+                        placeholder="Cari nama Organizer......."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm placeholder:text-gray-400 text-base"
+                        style={{ boxShadow: '0 2px 8px rgba(26,58,83,0.06)' }}
+                    />
+                </div>
+                <select
+                    value={status}
+                    onChange={e => setStatus(e.target.value)}
+                    className="py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base text-gray-700 bg-white shadow-sm"
+                >
+                    <option value="">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
             </div>
             <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Pengajuan Organizer</h2>
 
             {isLoading && <p>Memuat data...</p>}
             {isError && <p className="text-red-500">Terjadi kesalahan: {error.message}</p>}
 
-            {submissions && (
-                <div className="border rounded-lg text-sm overflow-hidden">
-                    <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
-                        <div className="col-span-2">Pemohon</div>
-                        <div className="col-span-2">Organisasi</div>
-                        <div className="col-span-2">Kontak</div>
-                        <div className="col-span-2">Tgl Pengajuan</div>
-                        <div className="col-span-1 text-center">Status</div>
-                        <div className="col-span-1 text-center">Verifikasi</div>
-                        <div className="col-span-2 text-right">Aksi</div>
-                    </div>
-                    <div className="divide-y divide-gray-100">
-                        {submissions.map((submission: any) => (
+            <div className="border rounded-lg text-sm overflow-hidden">
+                <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
+                    <div className="col-span-2">Pemohon</div>
+                    <div className="col-span-2">Organisasi</div>
+                    <div className="col-span-2">Kontak</div>
+                    <div className="col-span-2">Tgl Pengajuan</div>
+                    <div className="col-span-1 text-center">Status</div>
+                    <div className="col-span-1 text-center">Verifikasi</div>
+                    <div className="col-span-2 text-right">Aksi</div>
+                </div>
+                <div className="divide-y divide-gray-100">
+                    {submissions.length > 0 ? (
+                        submissions.map((submission: OrganizerSubmission) => (
                             <div key={submission.organizer_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center">
                                 <div className="col-span-2 font-bold text-[#1A3A53]">{submission.responsiblePerson}</div>
                                 <div className="col-span-2 text-gray-700">{submission.orgName}</div>
@@ -83,10 +127,12 @@ const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewCli
                                     )}
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 text-gray-500">Tidak ada pengajuan organizer ditemukan.</div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 };

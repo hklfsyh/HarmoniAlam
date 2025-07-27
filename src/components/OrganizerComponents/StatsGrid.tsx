@@ -33,28 +33,93 @@ const StatCardSkeleton = () => (
     </div>
 );
 
+
+// Tipe data untuk statistik organizer
+interface OrganizerStats {
+  totalEvents: number;
+  totalParticipants: number;
+  totalUpcomingEvents: number;
+  totalCompletedEvents: number;
+  totalArticles: number;
+}
+
+// Tipe data untuk profil organizer
+interface OrganizerProfile {
+  status: string;
+}
+
 // Fungsi untuk mengambil data statistik dari API
-const fetchOrganizerStats = async () => {
-    const { data } = await organizerApi.get('/organizer/stats');
+const fetchOrganizerStats = async (): Promise<OrganizerStats> => {
+    const { data } = await organizerApi.get<OrganizerStats>('/organizer/stats');
     return data;
 };
 
+// Fungsi untuk mengambil status organizer
+const fetchOrganizerProfile = async (): Promise<OrganizerProfile> => {
+    const { data } = await organizerApi.get<OrganizerProfile>('/organizer/profile');
+    return data;
+};
+
+
 const StatsGrid: React.FC = () => {
-    const { data: stats, isLoading, isError, error } = useQuery({
-        queryKey: ['organizerStats'],
-        queryFn: fetchOrganizerStats,
+    // Ambil status organizer
+    const { data: profile, isLoading: loadingProfile, isError: isErrorProfile, error: errorProfile } = useQuery<OrganizerProfile>({
+        queryKey: ['organizerProfileForStats'],
+        queryFn: fetchOrganizerProfile,
     });
 
-    if (isLoading) {
+    // Ambil statistik hanya jika status approved
+    const { data: stats, isLoading: loadingStats, isError: isErrorStats, error: errorStats } = useQuery<OrganizerStats>({
+        queryKey: ['organizerStats'],
+        queryFn: fetchOrganizerStats,
+        enabled: !!profile && profile.status?.toLowerCase() === 'approved',
+    });
+
+    if (loadingProfile) {
         return (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
                 {Array(5).fill(<StatCardSkeleton />)}
             </div>
         );
     }
+    if (isErrorProfile) {
+        return <p className="text-red-500 mb-8">Gagal memuat status: {errorProfile.message}</p>;
+    }
+    if (!profile) {
+        return <p className="text-red-500 mb-8">Data profil tidak ditemukan.</p>;
+    }
 
-    if (isError) {
-        return <p className="text-red-500 mb-8">Gagal memuat statistik: {error.message}</p>;
+    // Jika status pending/rejected, semua stats 0
+    const isNotApproved = profile.status?.toLowerCase() === 'pending' || profile.status?.toLowerCase() === 'rejected';
+
+    if (isNotApproved) {
+        // Data kartu dengan semua nilai 0
+        const statCardsData = [
+            { title: 'Total Event', value: 0, icon: <Calendar color="#3B82F6" />, color: '#3B82F6' },
+            { title: 'Partisipan', value: 0, icon: <Users color="#10B981" />, color: '#10B981' },
+            { title: 'Event Mendatang', value: 0, icon: <Clock color="#F59E0B" />, color: '#F59E0B' },
+            { title: 'Event Selesai', value: 0, icon: <TrendingUp color="#EF4444" />, color: '#EF4444' },
+            { title: 'Artikel', value: 0, icon: <FileText color="#14B8A6" />, color: '#14B8A6' },
+        ];
+        return (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                {statCardsData.map(stat => <StatCard key={stat.title} {...stat} />)}
+            </div>
+        );
+    }
+
+    if (loadingStats) {
+        return (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                {Array(5).fill(<StatCardSkeleton />)}
+            </div>
+        );
+    }
+    if (isErrorStats) {
+        return <p className="text-red-500 mb-8">Gagal memuat statistik: {errorStats.message}</p>;
+    }
+    if (!stats) {
+        return <p className="text-red-500 mb-8">Data statistik tidak ditemukan.</p>;
     }
 
     // Data kartu yang dipetakan dari hasil API

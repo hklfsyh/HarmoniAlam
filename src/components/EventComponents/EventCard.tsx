@@ -113,7 +113,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSuccess, onFailure }) =>
         <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
             <div className="relative">
                 <img src={event.image} alt={event.title} className="w-full h-48 object-cover" />
-                <div className="absolute top-3 left-3 bg-[#1A3A53] bg-opacity-80 text-white px-3 py-1 rounded-md text-sm font-semibold border-2 border-white/50">
+                <div className="absolute top-4 right-4 bg-[#1A3A53] text-white px-3 py-1 rounded-full text-sm font-semibold">
                     {event.categoryName}
                 </div>
             </div>

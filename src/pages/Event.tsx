@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import HeroSection from '../components/EventComponents/HeroSection';
 import FilterEvent from '../components/EventComponents/FilterEvent';
 import EventList from '../components/EventComponents/EventList';
@@ -11,6 +9,10 @@ const EventsPage: React.FC = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  
+  // State untuk mengelola filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   const handleRegistrationSuccess = (message: string) => {
     setModalMessage(message);
@@ -25,16 +27,19 @@ const EventsPage: React.FC = () => {
   return (
     <>
       <div className="bg-slate-50 min-h-screen">
-        <Navbar />
         <main className="flex-grow">
           <HeroSection />
-          <FilterEvent />
+          <FilterEvent 
+            setSearchTerm={setSearchTerm}
+            setSelectedCategory={setSelectedCategory}
+          />
           <EventList 
+            searchTerm={searchTerm}
+            selectedCategory={selectedCategory}
             onSuccess={handleRegistrationSuccess}
             onFailure={handleRegistrationFailure}
           />
         </main>
-        <Footer />
       </div>
 
       <SuccessModal

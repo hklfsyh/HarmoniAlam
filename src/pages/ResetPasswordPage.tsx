@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import publicApi from '../API/publicApi';
@@ -17,6 +18,8 @@ const ResetPasswordPage: React.FC = () => {
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -77,12 +80,46 @@ const ResetPasswordPage: React.FC = () => {
               <div className="text-left"><h2 className="text-3xl font-bold text-[#1A3A53]">Reset Password</h2><p className="text-gray-500 mt-1">Masukkan password baru Anda di bawah ini.</p></div>
               <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                   <div>
-                      <label className="block text-sm font-medium text-gray-700">Password Baru</label>
-                      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border rounded-lg"/>
+                    <label className="block text-sm font-medium text-gray-700">Password Baru</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="mt-1 block w-full px-4 py-3 border rounded-lg pr-12"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
                   <div>
-                      <label className="block text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
-                      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border rounded-lg"/>
+                    <label className="block text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className="mt-1 block w-full px-4 py-3 border rounded-lg pr-12"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        aria-label={showConfirmPassword ? 'Sembunyikan password' : 'Lihat password'}
+                      >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                       <button type="submit" disabled={mutation.isPending || !token} className="w-full flex justify-center py-3 px-4 rounded-lg text-lg font-bold text-white bg-[#1A3A53] hover:bg-opacity-90 disabled:bg-slate-400">

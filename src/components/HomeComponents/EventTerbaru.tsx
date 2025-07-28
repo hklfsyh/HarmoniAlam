@@ -36,33 +36,33 @@ const EventTerbaru: React.FC = () => {
                 {isLoading && <p className="text-center">Memuat event terbaru...</p>}
                 {isError && <p className="text-center text-red-500">Gagal memuat event: {error.message}</p>}
 
-                {events && (
-                    <div className="flex flex-wrap justify-center gap-8">
-                        {events.slice(0, 3).map((event: any) => (
-                            <div key={event.event_id} className="w-full md:w-1/2 lg:w-[30%] rounded-lg shadow-xl overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 flex flex-col bg-white">
-                                <div className="relative">
-                                    <img src={event.image} alt={event.title} className="w-full h-56 object-cover" />
-                                    <div className="absolute top-4 right-4 bg-[#1A3A53] text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                        {event.category.categoryName}
-                                    </div>
-                                </div>
+                {Array.isArray(events) && events.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-8">
+                    {events.slice(0, 3).map((event: any) => (
+                      <div key={event.event_id} className="w-full md:w-1/2 lg:w-[30%] rounded-lg shadow-xl overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 flex flex-col bg-white">
+                        <div className="relative">
+                          <img src={event.image} alt={event.title} className="w-full h-56 object-cover" />
+                          <div className="absolute top-4 right-4 bg-[#1A3A53] text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            {event.category?.categoryName ?? '-'}
+                          </div>
+                        </div>
 
-                                <div className="p-6 flex flex-col flex-grow">
-                                    <h3 className="text-2xl font-bold text-[#1A3A53] mb-4 flex-grow">{event.title}</h3>
-                                    <div className="flex items-center gap-2 text-gray-700 mb-6">
-                                        <Calendar className="h-5 w-5 text-gray-500" />
-                                        <span>{formatDate(event.eventDate)}</span>
-                                    </div>
-                                    <Link 
-                                        to={`/event/detail/${event.event_id}`}
-                                        className="mt-auto w-full text-center bg-[#1A3A53] text-white font-semibold py-3 rounded-lg hover:bg-opacity-90 transition-colors"
-                                    >
-                                        Lihat Detail
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h3 className="text-2xl font-bold text-[#1A3A53] mb-4 flex-grow">{event.title}</h3>
+                          <div className="flex items-center gap-2 text-gray-700 mb-6">
+                            <Calendar className="h-5 w-5 text-gray-500" />
+                            <span>{formatDate(event.eventDate)}</span>
+                          </div>
+                          <Link
+                            to={`/event/detail/${event.event_id}`}
+                            className="mt-auto w-full text-center bg-[#1A3A53] text-white font-semibold py-3 rounded-lg hover:bg-opacity-90 transition-colors"
+                          >
+                            Lihat Detail
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 <div className="text-center mt-12">

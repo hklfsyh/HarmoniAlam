@@ -9,14 +9,32 @@ type Category = {
   categoryName: string;
 };
 
+
+// Event Data Type
+interface EventDetail {
+  title: string;
+  category?: {
+    category_id: number;
+    categoryName: string;
+  };
+  maxParticipants: string;
+  eventDate?: string;
+  eventTime?: string;
+  location: string;
+  description: string;
+  requiredItems: string;
+  providedItems: string;
+  imagePath?: string;
+}
+
 // Fungsi API
-const fetchEventDetail = async (id: number) => {
+const fetchEventDetail = async (id: number): Promise<EventDetail> => {
   const { data } = await organizerApi.get(`/events/${id}`);
-  return data;
+  return data as EventDetail;
 };
 const fetchEventCategories = async (): Promise<Category[]> => {
   const { data } = await organizerApi.get('/categories/events');
-  return data;
+  return data as Category[];
 };
 const updateEvent = async ({ id, formData }: { id: number, formData: FormData }) => {
   const { data } = await organizerApi.patch(`/events/${id}`, formData, {
@@ -49,7 +67,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const { data: eventData, isLoading } = useQuery({
+  const { data: eventData, isLoading } = useQuery<EventDetail>({
     queryKey: ['organizerEventDetail', eventId],
     queryFn: () => fetchEventDetail(eventId!),
     enabled: !!eventId && isOpen,
@@ -63,17 +81,17 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
   useEffect(() => {
     if (eventData) {
       setFormData({
-        title: eventData.title || '',
-        category_id: String(eventData.category?.category_id || ''),
-        maxParticipants: eventData.maxParticipants || '',
-        eventDate: eventData.eventDate ? new Date(eventData.eventDate).toISOString().split('T')[0] : '',
-        eventTime: eventData.eventTime ? new Date(eventData.eventTime).toISOString().split('T')[1].substring(0, 5) : '',
-        location: eventData.location || '',
-        description: eventData.description || '',
-        requiredItems: eventData.requiredItems || '',
-        providedItems: eventData.providedItems || '',
+        title: eventData?.title || '',
+        category_id: String(eventData?.category?.category_id || ''),
+        maxParticipants: eventData?.maxParticipants || '',
+        eventDate: eventData?.eventDate ? new Date(eventData.eventDate).toISOString().split('T')[0] : '',
+        eventTime: eventData?.eventTime ? new Date(eventData.eventTime).toISOString().split('T')[1].substring(0, 5) : '',
+        location: eventData?.location || '',
+        description: eventData?.description || '',
+        requiredItems: eventData?.requiredItems || '',
+        providedItems: eventData?.providedItems || '',
       });
-      setImagePreview(eventData.imagePath);
+      setImagePreview(eventData?.imagePath || null);
     }
   }, [eventData]);
 
@@ -84,7 +102,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
       queryClient.invalidateQueries({ queryKey: ['organizerEventDetail', eventId] });
       onSuccess();
     },
-    onError: (error: any) => { alert(`Gagal memperbarui event: ${error.message}`); }
+    onError: (error: unknown) => {
+      if (error && typeof error === 'object' && 'message' in error) {
+        alert(`Gagal memperbarui event: ${(error as { message: string }).message}`);
+      } else {
+        alert('Gagal memperbarui event.');
+      }
+    }
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

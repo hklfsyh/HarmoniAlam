@@ -25,7 +25,22 @@ const InfoItem: React.FC<{ icon: React.ReactElement; label: string; value: strin
 const InfoSection: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
     <div><h3 className="text-lg font-semibold text-[#1A3A53] mb-2">{label}</h3><p className="text-gray-600 leading-relaxed whitespace-pre-line">{children}</p></div>
 );
-const OverviewTab: React.FC<{ event: any }> = ({ event }) => (
+interface AdminEventDetail {
+    title: string;
+    imagePath: string;
+    eventDate: string;
+    eventTime: string;
+    location: string;
+    currentParticipants: number;
+    maxParticipants: number;
+    category: { categoryName: string };
+    description: string;
+    requiredItems: string;
+    providedItems: string;
+    organizerName?: string;
+}
+
+const OverviewTab: React.FC<{ event: AdminEventDetail }> = ({ event }) => (
     <div className="bg-white p-8 rounded-lg shadow-md space-y-8">
         <div><h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Detail Event</h2><img src={event.imagePath} alt={event.title} className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"/>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -48,15 +63,15 @@ interface AdminDetailEventViewProps {
   onBack: () => void;
 }
 
-const fetchEventDetail = async (id: number) => {
+const fetchEventDetail = async (id: number): Promise<AdminEventDetail> => {
     const { data } = await adminApi.get(`/events/${id}`);
-    return data;
+    return data as AdminEventDetail;
 };
 
 const AdminDetailEventView: React.FC<AdminDetailEventViewProps> = ({ eventId, onBack }) => {
   const [activeTab, setActiveTab] = useState('Overview');
 
-  const { data: event, isLoading, isError, error } = useQuery({
+  const { data: event, isLoading, isError, error } = useQuery<AdminEventDetail>({
       queryKey: ['adminEventDetail', eventId],
       queryFn: () => fetchEventDetail(eventId),
       enabled: !!eventId,
@@ -83,7 +98,7 @@ const AdminDetailEventView: React.FC<AdminDetailEventViewProps> = ({ eventId, on
                     Kembali ke Dashboard
                 </button>
                 <h1 className="text-3xl font-bold text-[#1A3A53]">{event?.title || 'Memuat...'}</h1>
-                <p className="text-gray-500 mt-1">Oleh: {event?.organizerName || '...'}</p>
+                <p className="text-gray-500 mt-1">Oleh: {event?.organizerName ?? '...'}</p>
             </div>
             <div className="flex items-center gap-3">
                 <button className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-red-700">

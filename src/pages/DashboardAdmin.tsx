@@ -29,6 +29,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import RejectReasonModal from '../components/RejectReasonModal';
 import DeleteReasonModal from '../components/DeleteReasonModal';
 import SendEmailModal from '../components/SendEmailModal';
+import EditArticleModal from '../components/EditArticleModal'
 
 // Tipe data
 interface User {
@@ -91,6 +92,7 @@ const DashboardAdminPage: React.FC = () => {
 
   const [viewingAdminArticle, setViewingAdminArticle] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
+  const [isEditAdminArticleModalOpen, setIsEditAdminArticleModalOpen] = useState(false);
 
   const [viewingOrganizer, setViewingOrganizer] = useState(false);
   const [selectedOrganizerId, setSelectedOrganizerId] = useState<number | null>(null);
@@ -311,7 +313,6 @@ const DashboardAdminPage: React.FC = () => {
         </main>
       </div>
 
-
       <SuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
@@ -384,6 +385,16 @@ const DashboardAdminPage: React.FC = () => {
         isSending={sendEmailMutation.isPending}
         recipientName={emailRecipient?.name || ''}
         recipientEmail={emailRecipient?.email || ''}
+      />
+
+      {/* Edit Article Modal (Reusable) */}
+      <EditArticleModal
+        isOpen={isEditAdminArticleModalOpen}
+        onClose={() => setIsEditAdminArticleModalOpen(false)}
+        articleId={selectedArticleId}
+        onSuccess={handleEditSuccess}
+        api={adminApi}
+        queryKeyToInvalidate="allArticles"
       />
     </>
   );

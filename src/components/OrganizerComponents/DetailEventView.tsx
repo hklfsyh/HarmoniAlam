@@ -39,13 +39,26 @@ const OverviewTab: React.FC<{ event: any }> = ({ event }) => (
     </div>
 );
 
-const fetchEventVolunteers = async (eventId: number) => {
-    const { data } = await organizerApi.get(`/events/${eventId}/volunteers`);
-    return data;
+
+// Tipe data volunteer
+interface VolunteerReg {
+  registration_id: number;
+  registeredAt: string;
+  volunteer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+const fetchEventVolunteers = async (eventId: number): Promise<VolunteerReg[]> => {
+    const { data } = await organizerApi.get<{ volunteers: VolunteerReg[] }>(`/events/${eventId}/volunteers`);
+    return data.volunteers;
 };
 
+
 const PartisipanTab: React.FC<{ eventId: number }> = ({ eventId }) => {
-    const { data: volunteers, isLoading, isError, error } = useQuery({
+    const { data: volunteers, isLoading, isError, error } = useQuery<VolunteerReg[]>({
         queryKey: ['eventVolunteers', eventId],
         queryFn: () => fetchEventVolunteers(eventId),
         enabled: !!eventId,
@@ -57,13 +70,23 @@ const PartisipanTab: React.FC<{ eventId: number }> = ({ eventId }) => {
             <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Daftar Partisipan</h2>
             {isLoading && <p>Memuat daftar partisipan...</p>}
             {isError && <p className="text-red-500">Gagal memuat data: {error.message}</p>}
-            {volunteers && (
+            {Array.isArray(volunteers) && (
                 <div className="border rounded-lg text-sm overflow-hidden">
                     <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-slate-50 font-semibold text-gray-500 border-b">
                         <div>Nama</div><div>Email</div><div>Tanggal Daftar</div>
                     </div>
                     <div className="divide-y">
-                        {volunteers.length > 0 ? ( volunteers.map((reg: any) => ( <div key={reg.registration_id} className="grid grid-cols-3 gap-4 px-4 py-3 items-center"><div className="font-semibold text-[#1A3A53]">{reg.volunteer.firstName} {reg.volunteer.lastName}</div><div>{reg.volunteer.email}</div><div>{new Date(reg.registeredAt).toLocaleDateString('id-ID')}</div></div>))) : (<p className="p-4 text-gray-500">Belum ada partisipan yang mendaftar.</p>)}
+                        {volunteers.length > 0 ? (
+                            volunteers.map((reg) => (
+                                <div key={reg.registration_id} className="grid grid-cols-3 gap-4 px-4 py-3 items-center">
+                                    <div className="font-semibold text-[#1A3A53]">{reg.volunteer.firstName} {reg.volunteer.lastName}</div>
+                                    <div>{reg.volunteer.email}</div>
+                                    <div>{new Date(reg.registeredAt).toLocaleDateString('id-ID')}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="p-4 text-gray-500">Belum ada partisipan yang mendaftar.</p>
+                        )}
                     </div>
                 </div>
             )}

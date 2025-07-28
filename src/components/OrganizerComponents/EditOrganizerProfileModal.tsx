@@ -3,9 +3,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import organizerApi from '../../API/organizer';
 import { UploadCloud } from 'lucide-react';
 
+// Tipe data profil organizer
+interface OrganizerProfile {
+  orgName: string;
+  responsiblePerson: string;
+  phoneNumber: string;
+  website: string;
+  orgAddress: string;
+  orgDescription: string;
+  profilePicture?: string;
+  status?: string;
+}
+
 // Fungsi API
-const fetchMyProfile = async () => {
-    const { data } = await organizerApi.get('/organizer/profile');
+const fetchMyProfile = async (): Promise<OrganizerProfile> => {
+    const { data } = await organizerApi.get<OrganizerProfile>('/organizer/profile');
     return data;
 };
 const updateMyProfile = async (formData: FormData) => {
@@ -32,7 +44,7 @@ const EditOrganizerProfileModal: React.FC<EditOrganizerProfileModalProps> = ({ i
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery<OrganizerProfile>({
     queryKey: ['organizerProfile'],
     queryFn: fetchMyProfile,
     enabled: isOpen,
@@ -48,7 +60,7 @@ const EditOrganizerProfileModal: React.FC<EditOrganizerProfileModalProps> = ({ i
         orgAddress: profile.orgAddress || '',
         orgDescription: profile.orgDescription || '',
       });
-      setImagePreview(profile.profilePicture);
+      setImagePreview(profile.profilePicture || null);
     }
   }, [profile]);
 
@@ -85,7 +97,9 @@ const EditOrganizerProfileModal: React.FC<EditOrganizerProfileModalProps> = ({ i
     const submissionData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
         // Hanya kirim field yang diisi atau diubah
-        if (value && profile[key] !== value) {
+        if (value && profile && key in profile && (profile as any)[key] !== value) {
+            submissionData.append(key, value);
+        } else if (value && profile && !(key in profile)) {
             submissionData.append(key, value);
         }
     });

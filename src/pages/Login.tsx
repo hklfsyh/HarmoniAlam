@@ -9,7 +9,7 @@ import ErrorModal from '../components/ErrorModal';
 
 // Fungsi login yang mencoba setiap peran
 const loginUser = async (credentials: {email: string, password: string}) => {
-    const api_url = 'http://localhost:3000/api';
+    const api_url = 'https://harmoni-alam-api-819767094904.asia-southeast2.run.app/api';
     const rolesToTry = ['volunteer', 'organizer', 'admin'];
 
     for (const role of rolesToTry) {
@@ -28,7 +28,7 @@ const loginUser = async (credentials: {email: string, password: string}) => {
 
 // Fungsi untuk meminta reset password
 const forgotPasswordRequest = async (email: string) => {
-    const api_url = 'http://localhost:3000/api';
+    const api_url = 'https://harmoni-alam-api-819767094904.asia-southeast2.run.app/api';
     const { data } = await axios.post(`${api_url}/auth/forgot-password`, { email });
     return data;
 };

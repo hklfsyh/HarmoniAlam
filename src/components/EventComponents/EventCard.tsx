@@ -7,13 +7,13 @@ import { Calendar, Users } from 'lucide-react';
 import ConfirmationModal from '../ConfirmationModal';
 
 // Fungsi untuk mendaftar event
-const registerForEvent = (eventId: number) => {
-    return volunteerApi.post(`/events/${eventId}/register`);
+const registerForEvent = async (eventId: number) => {
+    return await volunteerApi.post(`/events/${eventId}/register`);
 };
 
 // Fungsi untuk membatalkan pendaftaran event
-const cancelRegistration = (eventId: number) => {
-    return volunteerApi.delete(`/events/${eventId}/register`);
+const cancelRegistration = async (eventId: number) => {
+    return await volunteerApi.delete(`/events/${eventId}/register`);
 };
 
 // Fungsi untuk mengambil event yang diikuti volunteer
@@ -31,6 +31,18 @@ interface Event {
     participants: string;
     categoryName: string;
     image: string;
+}
+
+interface RegisteredEvent {
+    event_id: number;
+}
+
+interface ApiError {
+    response?: {
+        data?: {
+            message?: string;
+        }
+    }
 }
 
 interface EventCardProps {
@@ -52,32 +64,32 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSuccess, onFailure }) =>
     });
 
     // Cek apakah volunteer sudah terdaftar di event ini
-    const isRegistered = myEvents?.some((e: any) => e.event_id === event.event_id) || false;
+    const isRegistered = Array.isArray(myEvents) && myEvents.some((e: RegisteredEvent) => e.event_id === event.event_id);
 
     // Mutasi untuk mendaftar
     const registerMutation = useMutation({
-        mutationFn: registerForEvent,
+        mutationFn: (eventId: number) => registerForEvent(eventId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['publicEvents'] });
             queryClient.invalidateQueries({ queryKey: ['publicEventDetail', String(event.event_id)] });
             queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
             onSuccess('Pendaftaran berhasil! Terima kasih atas partisipasi Anda.');
         },
-        onError: (error: any) => {
+        onError: (error: ApiError) => {
             onFailure(error.response?.data?.message || 'Terjadi kesalahan saat mendaftar.');
         }
     });
 
     // Mutasi untuk membatalkan pendaftaran
     const cancelMutation = useMutation({
-        mutationFn: cancelRegistration,
+        mutationFn: (eventId: number) => cancelRegistration(eventId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['publicEvents'] });
             queryClient.invalidateQueries({ queryKey: ['publicEventDetail', String(event.event_id)] });
             queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
             onSuccess('Pendaftaran berhasil dibatalkan.');
         },
-        onError: (error: any) => {
+        onError: (error: ApiError) => {
             onFailure(error.response?.data?.message || 'Terjadi kesalahan saat membatalkan pendaftaran.');
         }
     });
@@ -108,6 +120,15 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSuccess, onFailure }) =>
             day: '2-digit', month: 'long', year: 'numeric'
         });
     };
+
+    let buttonLabel = '';
+    if (registerMutation.isPending || cancelMutation.isPending) {
+        buttonLabel = 'Memproses...';
+    } else if (isRegistered) {
+        buttonLabel = 'Batal';
+    } else {
+        buttonLabel = 'Daftar';
+    }
 
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
@@ -149,11 +170,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSuccess, onFailure }) =>
                                 : 'bg-white border border-gray-300 text-gray-800 hover:bg-gray-100'}
                             disabled:bg-gray-200 disabled:cursor-not-allowed`}
                     >
-                        {registerMutation.isPending || cancelMutation.isPending 
-                            ? 'Memproses...' 
-                            : isRegistered 
-                                ? 'Batal' 
-                                : 'Daftar'}
+                        {buttonLabel}
                     </button>
                 </div>
             </div>

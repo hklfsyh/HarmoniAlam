@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const adminApi = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://harmoni-alam-api-819767094904.asia-southeast2.run.app/api',
 });
 
 // Interceptor untuk menambahkan token ke setiap request

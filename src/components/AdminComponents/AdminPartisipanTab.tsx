@@ -4,17 +4,27 @@ import adminApi from '../../API/admin';
 import { Search } from 'lucide-react';
 
 // Fungsi untuk mengambil daftar partisipan dari API
-const fetchEventVolunteers = async (eventId: number) => {
+const fetchEventVolunteers = async (eventId: number): Promise<VolunteerReg[]> => {
     const { data } = await adminApi.get(`/events/${eventId}/volunteers`);
-    return data;
+    return data as VolunteerReg[];
 };
 
 interface AdminPartisipanTabProps {
     eventId: number;
 }
 
+interface VolunteerReg {
+    registration_id: number;
+    registeredAt: string;
+    volunteer: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+    };
+}
+
 const AdminPartisipanTab: React.FC<AdminPartisipanTabProps> = ({ eventId }) => {
-    const { data: volunteers, isLoading, isError, error } = useQuery({
+    const { data: volunteers, isLoading, isError, error } = useQuery<VolunteerReg[]>({
         queryKey: ['eventVolunteers', eventId],
         queryFn: () => fetchEventVolunteers(eventId),
         enabled: !!eventId,
@@ -31,7 +41,7 @@ const AdminPartisipanTab: React.FC<AdminPartisipanTabProps> = ({ eventId }) => {
             {isLoading && <p>Memuat daftar partisipan...</p>}
             {isError && <p className="text-red-500">Gagal memuat data: {error.message}</p>}
 
-            {volunteers && (
+            {Array.isArray(volunteers) && (
                 <div className="border rounded-lg text-sm overflow-hidden">
                     <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-slate-50 font-semibold text-gray-500 border-b">
                         <div>Nama</div>
@@ -40,10 +50,10 @@ const AdminPartisipanTab: React.FC<AdminPartisipanTabProps> = ({ eventId }) => {
                     </div>
                     <div className="divide-y">
                         {volunteers.length > 0 ? (
-                            volunteers.map((reg: any) => (
+                            volunteers.map((reg) => (
                                 <div key={reg.registration_id} className="grid grid-cols-3 gap-4 px-4 py-3 items-center">
-                                    <div className="font-semibold text-[#1A3A53]">{reg.volunteer.firstName} {reg.volunteer.lastName}</div>
-                                    <div>{reg.volunteer.email}</div>
+                                    <div className="font-semibold text-[#1A3A53]">{reg.volunteer?.firstName ?? ''} {reg.volunteer?.lastName ?? ''}</div>
+                                    <div>{reg.volunteer?.email ?? '-'}</div>
                                     <div>{new Date(reg.registeredAt).toLocaleDateString('id-ID')}</div>
                                 </div>
                             ))

@@ -22,6 +22,8 @@ import CreateEventPage from './pages/CreateEvent';
 import DashboardAdminPage from './pages/DashboardAdmin';
 import AdminDetailEventPage from './pages/AdminDetailEventPage';
 import LoginRequiredModal from './components/LoginRequiredModal'; 
+import ResetPasswordPage from './pages/ResetPasswordPage'; 
+import NotFoundPage from './pages/NotFoundPage';
 
 const App: React.FC = () => {
   return (
@@ -38,6 +40,7 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/organizer/pengajuan" element={<PengajuanOrgPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           
           {/* Rute yang Dilindungi */}
           <Route element={<ProtectedRoute />}>
@@ -55,6 +58,8 @@ const App: React.FC = () => {
             <Route path="/admin/artikel/create" element={<CreateArticlePage />} />
             <Route path="/admin/event/detail" element={<AdminDetailEventPage />} />
           </Route>
+
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
       <LoginRequiredModal />

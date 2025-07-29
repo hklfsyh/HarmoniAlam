@@ -76,7 +76,7 @@ const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewCli
                 <select
                     value={status}
                     onChange={e => setStatus(e.target.value)}
-                    className="py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base text-gray-700 bg-white shadow-sm"
+                    className="font-light py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base text-gray-700 bg-white shadow-sm"
                 >
                     <option value="">Semua Status</option>
                     <option value="pending">Pending</option>
@@ -84,13 +84,13 @@ const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewCli
                     <option value="rejected">Rejected</option>
                 </select>
             </div>
-            <h2 className="text-2xl font-bold text-[#1A3A53] mb-4">Pengajuan Organizer</h2>
+            <h2 className="text-2xl font-normal text-[#1A3A53] mb-4">Pengajuan Organizer</h2>
 
             {isLoading && <p>Memuat data...</p>}
             {isError && <p className="text-red-500">Terjadi kesalahan: {error.message}</p>}
 
             <div className="border rounded-lg text-sm overflow-hidden">
-                <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
+                <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-normal uppercase tracking-wider text-xs">
                     <div className="col-span-2">Pemohon</div>
                     <div className="col-span-2">Organisasi</div>
                     <div className="col-span-2">Kontak</div>
@@ -102,22 +102,22 @@ const PengajuanOrganizerTab: React.FC<PengajuanOrganizerTabProps> = ({ onViewCli
                 <div className="divide-y divide-gray-100">
                     {submissions.length > 0 ? (
                         submissions.map((submission: OrganizerSubmission) => (
-                            <div key={submission.organizer_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center">
-                                <div className="col-span-2 font-bold text-[#1A3A53]">{submission.responsiblePerson}</div>
+                            <div key={submission.organizer_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center font-normal">
+                                <div className="col-span-2 text-[#1A3A53]">{submission.responsiblePerson}</div>
                                 <div className="col-span-2 text-gray-700">{submission.orgName}</div>
                                 <div className="col-span-2 text-gray-500">{submission.phoneNumber}</div>
                                 <div className="col-span-2 text-gray-500">{new Date(submission.createdAt).toLocaleDateString('id-ID')}</div>
                                 <div className="col-span-1 text-center">
-                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusStyles(submission.status)}`}>
+                                    <span className={`text-xs font-normal px-3 py-1 rounded-full ${getStatusStyles(submission.status)}`}>
                                         {submission.status}
                                     </span>
                                 </div>
-                                <div className="col-span-1 text-center">
-                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${submission.isVerified ? 'bg-green-100 text-[#79B829]' : 'bg-gray-100 text-gray-600'}`}>
+                                <div className="col-span-1 text-center font-normal">
+                                    <span className={`text-xs px-3 py-1 rounded-full ${submission.isVerified ? 'bg-green-100 text-[#79B829]' : 'bg-gray-100 text-gray-600'}`}>
                                         {submission.isVerified ? 'Terverifikasi' : 'Belum'}
                                     </span>
                                 </div>
-                                <div className="col-span-2 flex items-center justify-end gap-2 text-gray-500">
+                                <div className="col-span-2 flex items-center justify-end gap-2 text-gray-500 font-normal">
                                     <button onClick={() => onViewClick(submission.organizer_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
                                     {submission.status === 'pending' && (
                                         <>

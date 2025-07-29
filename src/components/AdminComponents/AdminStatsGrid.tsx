@@ -16,7 +16,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
   <div className="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
     <div>
       <p className="text-gray-500 text-sm">{title}</p>
-      <p className="text-2xl font-bold text-[#1A3A53]">{value}</p>
+      <p className="text-2xl font-normal text-[#1A3A53]">{value}</p>
     </div>
     <div className={`p-3 rounded-lg`} style={{ backgroundColor: `${color}20` }}>
       {icon}
@@ -66,7 +66,7 @@ const AdminStatsGrid: React.FC = () => {
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 font-light">
             {statCardsData.map(stat => <StatCard key={stat.title} {...stat} />)}
         </div>
     );

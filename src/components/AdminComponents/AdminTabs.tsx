@@ -15,7 +15,7 @@ const AdminTabs: React.FC<AdminTabsProps> = ({ activeTab, setActiveTab }) => {
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
-          className={`w-full py-2 px-4 rounded-md font-semibold text-sm transition-all ${
+          className={`w-full py-2 px-4 rounded-md font-normal text-sm transition-all ${
             activeTab === tab ? 'bg-white shadow' : 'text-gray-600'
           }`}
         >

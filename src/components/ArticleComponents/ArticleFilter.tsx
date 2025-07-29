@@ -48,7 +48,7 @@ const ArticleFilter: React.FC<ArticleFilterProps> = ({ setSearchTerm, setSelecte
   return (
     <div className="my-8">
       <div className="relative mb-4">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none font-normal">
           <Search className="h-5 w-5 text-gray-400" />
         </div>
         <input
@@ -62,7 +62,7 @@ const ArticleFilter: React.FC<ArticleFilterProps> = ({ setSearchTerm, setSelecte
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => handleCategoryClick(null)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+          className={`px-4 py-2 rounded-lg font-normal transition-colors text-sm ${
             activeCategoryId === null
               ? "bg-[#1A3A53] text-white shadow"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -76,7 +76,7 @@ const ArticleFilter: React.FC<ArticleFilterProps> = ({ setSearchTerm, setSelecte
           <button
             key={category.category_id}
             onClick={() => handleCategoryClick(category.category_id)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+            className={`px-4 py-2 rounded-lg font-normal transition-colors text-sm ${
               activeCategoryId === category.category_id
                 ? "bg-[#1A3A53] text-white shadow"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"

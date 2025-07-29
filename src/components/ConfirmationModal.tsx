@@ -32,20 +32,20 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <X size={24} />
         </button>
         <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-[#1A3A53] mb-2">{title}</h2>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h2 className="text-2xl font-normal text-[#1A3A53] mb-2">{title}</h2>
+        <p className="text-gray-600 mb-6 font-light">{message}</p>
         <div className="flex justify-center gap-4">
           <button
             onClick={onClose}
             disabled={isConfirming}
-            className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100"
+            className="px-6 py-2 border rounded-lg font-normal hover:bg-gray-100"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isConfirming}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:bg-red-400"
+            className="px-6 py-2 bg-red-600 text-white rounded-lg font-normal hover:bg-red-700 disabled:bg-red-400"
           >
             {isConfirming ? 'Menghapus...' : confirmText}
           </button>

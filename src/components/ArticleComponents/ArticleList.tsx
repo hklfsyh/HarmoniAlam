@@ -55,8 +55,8 @@ const ArticleList: React.FC<ArticleListProps> = ({ searchTerm, selectedCategory 
           </div>
         ) : (
           <div className="text-center py-12">
-            <h3 className="text-xl font-semibold text-gray-700">Tidak Ada Artikel yang Ditemukan</h3>
-            <p className="text-gray-500 mt-2">Coba gunakan kata kunci atau filter kategori yang berbeda.</p>
+            <h3 className="text-xl font-normal text-gray-700">Tidak Ada Artikel yang Ditemukan</h3>
+            <p className="text-gray-500 mt-2 font-light">Coba gunakan kata kunci atau filter kategori yang berbeda.</p>
           </div>
         )
       )}

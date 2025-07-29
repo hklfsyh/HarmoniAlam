@@ -13,28 +13,28 @@ const Footer: React.FC = () => {
           
           {/* About Section */}
           <div className="lg:col-span-2">
-            <h3 className="text-2xl font-bold text-white">
-              Harmoni<span className="text-[#79B829]">Alam</span>
+            <h3 className="text-2xl font-normal text-white">
+              Harmoni<span className="text-[#79B829] font-normal">Alam</span>
             </h3>
-            <p className="mt-4 text-gray-400 leading-relaxed">
+            <p className="mt-4 text-gray-400 leading-relaxed font-light">
               Menghubungkan komunitas untuk aksi lingkungan di seluruh dunia. Bergabunglah dengan kami dalam membangun masa depan berkelanjutan melalui inisiatif lokal dan dampak global.
             </p>
           </div>
 
           {/* Quick Links Section */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Tautan Cepat</h4>
+            <h4 className="text-lg font-normal text-white mb-4">Tautan Cepat</h4>
             <ul className="space-y-3">
-              <li><Link to="/" className="hover:text-[#79B829] transition-colors">Beranda</Link></li>
-              <li><Link to="/event" className="hover:text-[#79B829] transition-colors">Event</Link></li>
-              <li><Link to="/artikel" className="hover:text-[#79B829] transition-colors">Artikel</Link></li>
+              <li><Link to="/" className="hover:text-[#79B829] transition-colors font-light">Beranda</Link></li>
+              <li><Link to="/event" className="hover:text-[#79B829] transition-colors font-light">Event</Link></li>
+              <li><Link to="/artikel" className="hover:text-[#79B829] transition-colors font-light">Artikel</Link></li>
             </ul>
           </div>
 
           {/* Contact Section */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Hubungi Kami</h4>
-            <ul className="space-y-3 text-gray-400">
+            <h4 className="text-lg font-normal text-white mb-4">Hubungi Kami</h4>
+            <ul className="space-y-3 text-gray-400 font-light">
               <li>info@harmonialam.org</li>
               <li>0867687368734</li>
               <li>123 Jalan Hijau, Kota Eco</li>
@@ -52,13 +52,13 @@ const Footer: React.FC = () => {
 
         {/* Bottom Section */}
         <div className="mt-12 pt-8 border-t border-gray-700 flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-sm text-gray-500 text-center sm:text-left">
-            © 2025 HarmoniAlam.org - <span className="text-[#79B829]">Membangun masa depan berkelanjutan bersama</span>
+          <p className="text-sm text-gray-500 text-center sm:text-left font-light">
+            © 2025 HarmoniAlam.org - <span className="text-[#79B829] font-light">Membangun masa depan berkelanjutan bersama</span>
           </p>
           <div className="flex gap-x-6 mt-4 sm:mt-0">
-            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Kebijakan Privasi</a>
-            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Ketentuan Layanan</a>
-            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Kebijakan Cookie</a>
+            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors font-light">Kebijakan Privasi</a>
+            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors font-light">Ketentuan Layanan</a>
+            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors font-light">Kebijakan Cookie</a>
           </div>
         </div>
       </div>

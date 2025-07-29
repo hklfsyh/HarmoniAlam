@@ -35,10 +35,10 @@ const StatsSection: React.FC = () => {
                 {stat.icon}
               </div>
               {/* Ukuran teks angka diubah dari text-5xl menjadi text-4xl */}
-              <p className="text-4xl font-bold text-white">
+              <p className="text-4xl font-normal text-white">
                 {stat.value}
               </p>
-              <p className="mt-2 text-lg text-[#79B829] font-semibold">
+              <p className="mt-2 text-lg text-[#79B829] font-light">
                 {stat.label}
               </p>
             </div>

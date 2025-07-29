@@ -8,6 +8,12 @@ import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import SuccessModal from '../components/SuccessModal';
 import ErrorModal from '../components/ErrorModal';
 
+// 1. Definisikan interface untuk bentuk respons API
+interface LoginResponse {
+  token: string;
+  // Anda bisa tambahkan properti lain jika ada, misal: message: string;
+}
+
 // Fungsi login yang mencoba setiap peran
 const loginUser = async (credentials: {email: string, password: string}) => {
     const api_url = 'https://harmoni-alam-api-819767094904.asia-southeast2.run.app/api';
@@ -15,10 +21,12 @@ const loginUser = async (credentials: {email: string, password: string}) => {
 
     for (const role of rolesToTry) {
       try {
-        const { data } = await axios.post(`${api_url}/${role}/login`, {
+        // 2. Terapkan interface pada panggilan axios
+        const { data } = await axios.post<LoginResponse>(`${api_url}/${role}/login`, {
             email: credentials.email,
             password: credentials.password,
         });
+        // Sekarang TypeScript tahu bahwa data.token itu ada dan tipenya string
         return { token: data.token, role: role };
       } catch (error) {
         console.log(`Login as ${role} failed, trying next...`);

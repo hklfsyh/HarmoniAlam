@@ -27,8 +27,8 @@ const EventTerbaru: React.FC = () => {
             <div className="container mx-auto px-6">
                 
                 <div className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold text-[#1A3A53]">Event Terbaru</h2>
-                    <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
+                    <h2 className="text-4xl md:text-5xl font-normal text-[#1A3A53]">Event Terbaru</h2>
+                    <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto font-light">
                         Temukan event kebersihan lingkungan di sekitar Anda dan berpartisipasilah untuk masa depan yang lebih hijau
                     </p>
                 </div>
@@ -42,20 +42,20 @@ const EventTerbaru: React.FC = () => {
                       <div key={event.event_id} className="w-full md:w-1/2 lg:w-[30%] rounded-lg shadow-xl overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 flex flex-col bg-white">
                         <div className="relative">
                           <img src={event.image} alt={event.title} className="w-full h-56 object-cover" />
-                          <div className="absolute top-4 right-4 bg-[#1A3A53] text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          <div className="absolute top-4 right-4 bg-[#1A3A53] text-white px-3 py-1 rounded-full text-sm font-light">
                             {event.category?.categoryName ?? '-'}
                           </div>
                         </div>
 
                         <div className="p-6 flex flex-col flex-grow">
-                          <h3 className="text-2xl font-bold text-[#1A3A53] mb-4 flex-grow">{event.title}</h3>
-                          <div className="flex items-center gap-2 text-gray-700 mb-6">
-                            <Calendar className="h-5 w-5 text-gray-500" />
+                          <h3 className="text-2xl text-[#1A3A53] mb-4 flex-grow font-normal">{event.title}</h3>
+                          <div className="flex items-center gap-2 text-gray-700 mb-6 font-light">
+                            <Calendar className="h-5 w-5 text-gray-500 font-light" />
                             <span>{formatDate(event.eventDate)}</span>
                           </div>
                           <Link
                             to={`/event/detail/${event.event_id}`}
-                            className="mt-auto w-full text-center bg-[#1A3A53] text-white font-semibold py-3 rounded-lg hover:bg-opacity-90 transition-colors"
+                            className="mt-auto w-full text-center bg-[#1A3A53] text-white font-normal py-3 rounded-lg hover:bg-opacity-90 transition-colors"
                           >
                             Lihat Detail
                           </Link>
@@ -66,7 +66,7 @@ const EventTerbaru: React.FC = () => {
                 )}
 
                 <div className="text-center mt-12">
-                    <Link to="/event" className="inline-flex items-center gap-2 px-6 py-3 border border-[#79B829] text-[#79B829] font-semibold rounded-lg hover:bg-[#79B829] hover:text-white transition-colors">
+                    <Link to="/event" className="inline-flex items-center gap-2 px-6 py-3 border border-[#79B829] text-[#79B829] font-normal rounded-lg hover:bg-[#79B829] hover:text-white transition-colors">
                         Lihat Semua Event
                         <ArrowRight className="h-5 w-5" />
                     </Link>

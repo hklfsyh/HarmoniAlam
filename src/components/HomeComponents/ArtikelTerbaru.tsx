@@ -27,8 +27,8 @@ const ArtikelTerbaru: React.FC = () => {
             <div className="container mx-auto px-6">
                 
                 <div className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold text-[#1A3A53]">Artikel Terbaru</h2>
-                    <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
+                    <h2 className="text-4xl md:text-5xl font-normal text-[#1A3A53]">Artikel Terbaru</h2>
+                    <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto font-light">
                         Baca artikel terbaru seputar lingkungan dan tips menjaga kebersihan alam
                     </p>
                 </div>
@@ -42,21 +42,21 @@ const ArtikelTerbaru: React.FC = () => {
                       <div key={article.article_id} className="w-full md:w-1/2 lg:w-[30%] rounded-lg shadow-xl overflow-hidden transform transition-transform duration-300 hover:-translate-y-2 flex flex-col bg-white">
                         <div className="relative">
                           <img src={article.image} alt={article.title} className="w-full h-56 object-cover" />
-                          <div className="absolute top-4 right-4 bg-[#79B829] bg-opacity-80 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          <div className="absolute top-4 right-4 bg-[#79B829] bg-opacity-80 text-white px-3 py-1 rounded-full text-sm font-light">
                             {article.category?.categoryName ?? '-'}
                           </div>
                         </div>
 
                         <div className="p-6 flex flex-col flex-grow">
-                          <h3 className="text-xl font-bold text-[#1A3A53] mb-2">{article.title}</h3>
-                          <p className="text-gray-600 text-sm mb-4 flex-grow">{article.summary}</p>
-                          <div className="flex items-center gap-2 text-gray-500 text-xs mt-auto mb-4">
+                          <h3 className="text-xl font-normal text-[#1A3A53] mb-2">{article.title}</h3>
+                          <p className="text-gray-600 text-sm mb-4 flex-grow font-light">{article.summary}</p>
+                          <div className="flex items-center gap-2 text-gray-500 text-xs mt-auto mb-4 font-light">
                             <Calendar className="h-4 w-4" />
                             <span>{formatDate(article.createdAt)}</span>
                           </div>
                           <Link
                             to={`/artikel/detail/${article.article_id}`}
-                            className="w-full text-center bg-[#79B829] text-white font-semibold py-2 rounded-lg hover:bg-opacity-90 transition-colors"
+                            className="w-full text-center bg-[#79B829] text-white font-normal py-2 rounded-lg hover:bg-opacity-90 transition-colors"
                           >
                             Baca Selengkapnya
                           </Link>
@@ -67,7 +67,7 @@ const ArtikelTerbaru: React.FC = () => {
                 )}
 
                 <div className="text-center mt-12">
-                    <Link to="/artikel" className="inline-flex items-center gap-2 px-6 py-3 border border-[#79B829] text-[#79B829] font-semibold rounded-lg hover:bg-[#79B829] hover:text-white transition-colors">
+                    <Link to="/artikel" className="inline-flex items-center gap-2 px-6 py-3 border border-[#79B829] text-[#79B829] font-normal rounded-lg hover:bg-[#79B829] hover:text-white transition-colors">
                         Lihat Semua Artikel
                         <ArrowRight className="h-5 w-5" />
                     </Link>

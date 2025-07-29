@@ -7,19 +7,19 @@ const ArticleDetailHeader: React.FC<{ article: any }> = ({ article }) => {
   if (!article) return null;
   return (
     <header>
-      <Link to="/artikel" className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-6">
+      <Link to="/artikel" className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-normal mb-6">
         <ArrowLeft size={20} />
         Kembali ke Artikel
       </Link>
       <div>
-        <span className="bg-[#79B829] text-white px-3 py-1 rounded-full text-sm font-semibold">
+        <span className="bg-[#79B829] text-white px-3 py-1 rounded-full text-sm font-normal">
           {article.category.categoryName}
         </span>
       </div>
-      <h1 className="text-4xl font-bold text-[#1A3A53] mt-4">
+      <h1 className="text-4xl font-normal text-[#1A3A53] mt-4">
         {article.title}
       </h1>
-      <div className="flex items-center gap-6 mt-4 text-gray-500">
+      <div className="flex items-center gap-6 mt-4 text-gray-500 font-light">
         <div className="flex items-center gap-2"><Calendar size={18} /><span>{new Date(article.createdAt).toLocaleDateString('id-ID')}</span></div>
         <div className="flex items-center gap-2"><User size={18} /><span>{article.authorName}</span></div>
       </div>

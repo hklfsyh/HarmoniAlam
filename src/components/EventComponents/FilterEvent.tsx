@@ -61,7 +61,7 @@ const FilterEvent: React.FC<FilterEventProps> = ({ setSearchTerm, setSelectedCat
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => handleCategoryClick(null)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+          className={`px-4 py-2 rounded-lg font-normal transition-colors text-sm ${
             activeCategoryId === null
               ? "bg-[#1A3A53] text-white shadow"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -75,7 +75,7 @@ const FilterEvent: React.FC<FilterEventProps> = ({ setSearchTerm, setSelectedCat
           <button
             key={category.category_id}
             onClick={() => handleCategoryClick(category.category_id)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+            className={`px-4 py-2 rounded-lg font-normal transition-colors text-sm ${
               activeCategoryId === category.category_id
                 ? "bg-[#1A3A53] text-white shadow"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"

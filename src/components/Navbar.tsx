@@ -98,18 +98,18 @@ const Navbar: React.FC = () => {
     if (user?.role === 'volunteer') {
       return (
         <>
-          <Link to="/" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Home</Link>
-          <Link to="/event" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Event</Link>
-          <Link to="/artikel" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Artikel</Link>
+          <Link to="/" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Home</Link>
+          <Link to="/event" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Event</Link>
+          <Link to="/artikel" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Artikel</Link>
         </>
       );
     }
     // Untuk guest (user === null)
     return (
       <>
-        <Link to="/" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Home</Link>
-        <Link to="/event" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Event</Link>
-        <Link to="/artikel" className="text-[#1A3A53] hover:text-[#79B829] font-semibold">Artikel</Link>
+        <Link to="/" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Home</Link>
+        <Link to="/event" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Event</Link>
+        <Link to="/artikel" className="text-[#1A3A53] hover:text-[#79B829] font-normal">Artikel</Link>
       </>
     );
   };
@@ -163,7 +163,7 @@ const Navbar: React.FC = () => {
                 <hr className="my-1" />
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600 transition-colors text-sm font-medium w-full"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600 transition-colors text-sm font-normal w-full"
                 >
                   <LogOut size={18} />
                   Logout
@@ -176,17 +176,17 @@ const Navbar: React.FC = () => {
     }
     if (user) {
       return (
-        <button onClick={handleLogout} className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 font-semibold">
+        <button onClick={handleLogout} className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 font-normal">
           Logout
         </button>
       );
     }
     return (
       <div className="flex items-center space-x-4">
-        <Link to="/login" className="px-4 py-2 text-center text-[#1A3A53] border border-[#1A3A53] rounded-md hover:bg-slate-100 font-semibold transition-colors">
+        <Link to="/login" className="px-4 py-2 text-center text-[#1A3A53] border border-[#1A3A53] rounded-md hover:bg-slate-100 font-normal transition-colors">
           Login
         </Link>
-        <Link to="/register" className="px-4 py-2 text-center text-white bg-[#1A3A53] rounded-md hover:bg-[#79B829] font-semibold transition-colors">
+        <Link to="/register" className="px-4 py-2 text-center text-white bg-[#1A3A53] rounded-md hover:bg-[#79B829] font-normal transition-colors">
           Register
         </Link>
       </div>
@@ -197,34 +197,39 @@ const Navbar: React.FC = () => {
   if (user?.role === 'admin') logoLink = '/admin/dashboard';
   else if (user?.role === 'organizer') logoLink = '/dashboard';
 
-  return (
+// Ganti seluruh bagian 'return' di Navbar.tsx dengan kode ini
+
+return (
     <>
       <nav className={`w-full fixed top-0 left-0 z-50 shadow-md transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md' : 'bg-white'}`}>
-        <div className="container mx-auto px-6 py-2 flex justify-between items-center">
-          <Link
-            to={logoLink}
-            className="relative flex items-center"
-          >
-            <div className="w-16 h-10"></div>
-            <img
-              src="/Logo_HarmoniAlam.png"
-              alt="Logo"
-              className="absolute top-1/2 -translate-y-1/2 h-20 w-20"
-            />
-          </Link>
+        <div className="container mx-auto px-6 flex justify-between items-center h-16"> {/* Menggunakan tinggi standar h-16 */}
+          
+          {/* BAGIAN KIRI: Logo */}
+          <div className="flex-shrink-0"> {/* Mencegah logo menyusut */}
+            <Link to={logoLink}>
+              <img
+                src="/Logo_HarmoniAlam.png"
+                alt="Logo"
+                className="h-14 w-auto" // Tinggi spesifik, lebar otomatis. Ini memperbaiki logo gepeng.
+              />
+            </Link>
+          </div>
 
-          {user?.role !== 'admin' && user?.role !== 'organizer' && (
-            <div className="hidden md:flex items-center space-x-8">
-              {renderNavLinks()}
-            </div>
-          )}
+          {/* BAGIAN TENGAH: Nav Links (hanya di layar besar) */}
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center space-x-8">
+            {/* Tampilkan nav links HANYA jika bukan admin/organizer */}
+            {user?.role !== 'admin' && user?.role !== 'organizer' && renderNavLinks()}
+          </div>
 
+          {/* BAGIAN KANAN: Action Buttons */}
           <div className="flex items-center space-x-4">
             {renderActionButtons()}
           </div>
+
         </div>
       </nav>
 
+      {/* Bagian Modal (tidak berubah) */}
       <ContactAdminModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}

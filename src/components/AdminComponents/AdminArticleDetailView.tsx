@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import adminApi from '../../API/admin';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AdminArticleDetailViewProps {
   onBack: () => void;
@@ -75,6 +75,8 @@ const AdminArticleDetailView: React.FC<AdminArticleDetailViewProps> = ({ onBack,
         enabled: !!articleId,
     });
 
+    const [galleryIdx, setGalleryIdx] = React.useState(0);
+
     if (isLoading) return <div className="p-8 text-center">Memuat detail artikel...</div>;
     if (isError) return <div className="p-8 text-center text-red-500">Terjadi kesalahan: {error.message}</div>;
 
@@ -83,6 +85,12 @@ const AdminArticleDetailView: React.FC<AdminArticleDetailViewProps> = ({ onBack,
     const authorName = getAuthorName(article);
 
     if (!article) return null;
+
+    // Gallery array dari response
+    const gallery = Array.isArray(article.gallery) ? article.gallery.map((g: any) => g.url) : [];
+
+    const prevGallery = () => setGalleryIdx((prev) => (prev === 0 ? gallery.length - 1 : prev - 1));
+    const nextGallery = () => setGalleryIdx((prev) => (prev === gallery.length - 1 ? 0 : prev + 1));
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -132,6 +140,54 @@ const AdminArticleDetailView: React.FC<AdminArticleDetailViewProps> = ({ onBack,
                 <p>{article.summary ?? ''}</p>
                 <p>{article.content ? article.content.replace(/\r\n/g, '\n\n') : ''}</p>
             </article>
+
+            {/* Gallery Section */}
+            {gallery.length > 0 && (
+                <div className="mt-10">
+                    <h2 className="text-xl font-bold text-[#1A3A53] mb-4 text-center">Galeri Artikel</h2>
+                    <div className="flex flex-col items-center">
+                        <div className="relative w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow border bg-white flex justify-center">
+                            <img
+                                src={gallery[galleryIdx]}
+                                alt={`Galeri Artikel ${galleryIdx + 1}`}
+                                className="w-full h-80 object-cover transition-all duration-300"
+                                loading="lazy"
+                            />
+                        </div>
+                        {gallery.length > 1 && (
+                            <div className="flex items-center justify-center gap-4 mt-4">
+                                <button
+                                    onClick={prevGallery}
+                                    className="p-2 rounded-full bg-[#eaf6e9] hover:bg-[#79B829] text-[#1A3A53] hover:text-white transition"
+                                    aria-label="Sebelumnya"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    {galleryIdx + 1} / {gallery.length}
+                                </span>
+                                <button
+                                    onClick={nextGallery}
+                                    className="p-2 rounded-full bg-[#eaf6e9] hover:bg-[#79B829] text-[#1A3A53] hover:text-white transition"
+                                    aria-label="Selanjutnya"
+                                >
+                                    <ChevronRight size={24} />
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex gap-2 mt-3 justify-center">
+                            {gallery.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setGalleryIdx(idx)}
+                                    className={`w-3 h-3 rounded-full transition-all border ${galleryIdx === idx ? "bg-[#79B829] border-[#79B829]" : "bg-gray-300 border-gray-300"}`}
+                                    aria-label={`Pilih gambar ${idx + 1}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

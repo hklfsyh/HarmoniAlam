@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import publicApi from '../API/publicApi';
 import ArticleDetailHeader from '../components/DetailArticleComponents/ArticleDetailHeader';
 import ArticleDetailContent from '../components/DetailArticleComponents/ArticleDetailContent';
+import ArticleGallery from '../components/DetailArticleComponents/ArticleGallery'; // Tambahkan import
 
 const fetchArticleDetail = async (id: string) => {
     const { data } = await publicApi.get(`/articles/${id}`);
@@ -33,6 +34,9 @@ const DetailArticlePage: React.FC = () => {
         <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg">
           <ArticleDetailHeader article={article} />
           <ArticleDetailContent article={article} />
+          {article.gallery && article.gallery.length > 0 && (
+            <ArticleGallery gallery={article.gallery.map((img: any) => typeof img === 'string' ? img : img.url)} />
+          )}
         </div>
       </main>
     </div>

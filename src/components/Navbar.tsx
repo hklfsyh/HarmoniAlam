@@ -7,6 +7,7 @@ import { ChevronDown, LogOut, Mail, User } from 'lucide-react';
 import ContactAdminModal from './ContactAdminModal';
 import SuccessModal from './SuccessModal';
 import ErrorModal from './ErrorModal';
+import ConfirmationModal from './ConfirmationModal';
 
 interface VolunteerProfile {
   firstName: string;
@@ -38,6 +39,7 @@ const Navbar: React.FC = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ['volunteerProfileNav'],
@@ -153,6 +155,16 @@ const Navbar: React.FC = () => {
                 <Link to="/profile" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full">
                   <User size={18} /> Profile Saya
                 </Link>
+                <Link
+                  to="/bookmark"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full"
+                >
+                  {/* Icon Bookmark */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#79B829]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v16l7-5 7 5V5a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
+                  </svg>
+                  Bookmark
+                </Link>
                 <button
                   onClick={() => setIsContactModalOpen(true)}
                   className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full"
@@ -162,7 +174,7 @@ const Navbar: React.FC = () => {
                 </button>
                 <hr className="my-1" />
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setIsLogoutConfirmOpen(true)}
                   className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600 transition-colors text-sm font-normal w-full"
                 >
                   <LogOut size={18} />
@@ -174,9 +186,12 @@ const Navbar: React.FC = () => {
         </div>
       );
     }
-    if (user) {
+    if (user?.role === 'admin' || user?.role === 'organizer') {
       return (
-        <button onClick={handleLogout} className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 font-normal">
+        <button
+          onClick={() => setIsLogoutConfirmOpen(true)}
+          className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 font-normal"
+        >
           Logout
         </button>
       );
@@ -197,9 +212,7 @@ const Navbar: React.FC = () => {
   if (user?.role === 'admin') logoLink = '/admin/dashboard';
   else if (user?.role === 'organizer') logoLink = '/dashboard';
 
-// Ganti seluruh bagian 'return' di Navbar.tsx dengan kode ini
-
-return (
+  return (
     <>
       <nav className={`w-full fixed top-0 left-0 z-50 shadow-md transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md' : 'bg-white'}`}>
         <div className="container mx-auto px-6 flex justify-between items-center h-16"> {/* Menggunakan tinggi standar h-16 */}
@@ -249,6 +262,19 @@ return (
         title="Gagal Mengirim"
         message={modalMessage}
         buttonText="Coba Lagi"
+      />
+      <ConfirmationModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={() => {
+          setIsLogoutConfirmOpen(false);
+          handleLogout();
+        }}
+        title="Konfirmasi Logout"
+        message="Apakah Anda yakin ingin logout dari akun ini?"
+        confirmText="Logout"
+        cancelText="Batal"
+        isConfirming={false}
       />
     </>
   );

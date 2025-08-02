@@ -123,6 +123,9 @@ const DashboardAdminPage: React.FC = () => {
   const [isDeleteEventModalOpen, setIsDeleteEventModalOpen] = useState(false);
   const [eventToDeleteId, setEventToDeleteId] = useState<number | null>(null);
 
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [broadcastUserType, setBroadcastUserType] = useState<'volunteer' | 'organizer' | 'all'>('all');
+
   const handleLogout = () => { logout(); navigate('/'); };
 
   const handleTabChange = (tab: string) => {
@@ -222,6 +225,24 @@ const DashboardAdminPage: React.FC = () => {
     }
   });
 
+  const broadcastEmailMutation = useMutation({
+    mutationFn: ({ userType, subject, message }: { userType?: string; subject: string; message: string }) =>
+      adminApi.post('/admin/broadcast', userType === 'all'
+        ? { subject, message }
+        : { userType, subject, message }
+      ),
+    onSuccess: () => {
+      setIsBroadcastModalOpen(false);
+      setSuccessMessage('Pengumuman berhasil dikirim!');
+      setIsSuccessModalOpen(true);
+    },
+    onError: () => {
+      setIsBroadcastModalOpen(false);
+      setSuccessMessage('Gagal mengirim pengumuman.');
+      setIsSuccessModalOpen(true);
+    }
+  });
+
   const handleOpenDeleteArticleModal = (id: number) => { setArticleToDeleteId(id); setIsDeleteArticleModalOpen(true); };
   const handleConfirmDeleteArticle = (reason: string) => { if (articleToDeleteId) deleteArticleMutation.mutate({ id: articleToDeleteId, reason }); };
 
@@ -260,6 +281,19 @@ const DashboardAdminPage: React.FC = () => {
         message
       });
     }
+  };
+
+  const handleOpenBroadcastModal = () => {
+    setBroadcastUserType('all');
+    setIsBroadcastModalOpen(true);
+  };
+
+  const handleConfirmBroadcast = (subject: string, message: string) => {
+    broadcastEmailMutation.mutate({
+      userType: broadcastUserType === 'all' ? undefined : broadcastUserType,
+      subject,
+      message
+    });
   };
 
   const renderContent = () => {
@@ -302,11 +336,28 @@ const DashboardAdminPage: React.FC = () => {
     }
   };
 
+  const broadcastExtraInput = (
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-1">Tujuan Pengumuman</label>
+      <select
+        value={broadcastUserType}
+        onChange={e => setBroadcastUserType(e.target.value as 'volunteer' | 'organizer' | 'all')}
+        className="w-full p-2 border rounded-lg"
+      >
+        <option value="all">Semua Pengguna</option>
+        <option value="volunteer">Volunteer</option>
+        <option value="organizer">Organizer</option>
+      </select>
+    </div>
+  );
+
   return (
     <>
       <div className="bg-slate-100 min-h-screen">
         <main className="container mx-auto px-6 py-8 pt-30">
-          <AdminHeader />
+          <AdminHeader
+            onBroadcastClick={handleOpenBroadcastModal}
+          />
           <AdminStatsGrid />
           <AdminTabs activeTab={activeTab} setActiveTab={handleTabChange} />
           <div>{renderContent()}</div>
@@ -385,6 +436,16 @@ const DashboardAdminPage: React.FC = () => {
         isSending={sendEmailMutation.isPending}
         recipientName={emailRecipient?.name || ''}
         recipientEmail={emailRecipient?.email || ''}
+      />
+
+      <SendEmailModal
+        isOpen={isBroadcastModalOpen}
+        onClose={() => setIsBroadcastModalOpen(false)}
+        onConfirm={handleConfirmBroadcast}
+        isSending={broadcastEmailMutation.isPending}
+        recipientName="Broadcast Pengumuman"
+        recipientEmail="Seluruh Komunitas"
+        extraInput={broadcastExtraInput}
       />
 
       {/* Edit Article Modal (Reusable) */}

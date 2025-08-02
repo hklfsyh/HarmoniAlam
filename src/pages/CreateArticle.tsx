@@ -36,6 +36,8 @@ const CreateArticlePage: React.FC = () => {
   const [categoryId, setCategoryId] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<(File | null)[]>([null]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -74,8 +76,36 @@ const CreateArticlePage: React.FC = () => {
       }
   };
 
+  const handleGalleryChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const newGallery = [...gallery];
+      newGallery[idx] = file;
+      setGallery(newGallery);
+
+      const newPreviews = [...galleryPreviews];
+      newPreviews[idx] = URL.createObjectURL(file);
+      setGalleryPreviews(newPreviews);
+    }
+  };
+
+  const handleAddGalleryInput = () => {
+    if (gallery.length < 10) {
+      setGallery([...gallery, null]);
+      setGalleryPreviews([...galleryPreviews, ""]);
+    }
+  };
+
+  const handleRemoveGalleryInput = (idx: number) => {
+    if (gallery.length > 1) {
+      const newGallery = gallery.filter((_, i) => i !== idx);
+      const newPreviews = galleryPreviews.filter((_, i) => i !== idx);
+      setGallery(newGallery);
+      setGalleryPreviews(newPreviews);
+    }
+  };
+
   const handleSubmit = (status: 'publish' | 'draft') => {
-    // Validasi semua field wajib diisi
     if (!title.trim() || !summary.trim() || !content.trim() || !categoryId || !image) {
       setErrorMessage('Semua field wajib diisi. Judul, Kategori, Ringkasan, Konten, dan Gambar tidak boleh kosong.');
       setIsErrorModalOpen(true);
@@ -89,7 +119,12 @@ const CreateArticlePage: React.FC = () => {
     formData.append('category_id', categoryId);
     formData.append('image', image);
     formData.append('status', status);
-    
+
+    // Tambahkan gallery files (hanya yang terisi)
+    gallery.forEach((file) => {
+      if (file) formData.append('gallery', file);
+    });
+
     mutation.mutate(formData);
   };
 
@@ -116,6 +151,8 @@ const CreateArticlePage: React.FC = () => {
     setCategoryId('');
     setImage(null);
     setImagePreview(null);
+    setGallery([null]);
+    setGalleryPreviews([]);
   };
 
   return (
@@ -174,6 +211,50 @@ const CreateArticlePage: React.FC = () => {
                     <span>{image ? image.name : 'Klik untuk memilih gambar'}</span>
                     <input id="file-upload" type="file" className="sr-only" onChange={handleFileChange} required accept="image/*" />
                   </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</label>
+                <div className="mt-1 flex flex-wrap gap-4">
+                  {gallery.map((file, idx) => (
+                    <div key={idx} className="flex flex-col items-center gap-2">
+                      {galleryPreviews[idx] && (
+                        <img src={galleryPreviews[idx]} alt={`Preview Gallery ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg" />
+                      )}
+                      <label htmlFor={`gallery-upload-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 min-w-[100px]">
+                        <UploadCloud size={20} className="mb-1"/>
+                        <span className="text-xs">{file ? file.name : 'Pilih gambar'}</span>
+                        <input
+                          id={`gallery-upload-${idx}`}
+                          type="file"
+                          className="sr-only"
+                          onChange={(e) => handleGalleryChange(idx, e)}
+                          accept="image/*"
+                        />
+                      </label>
+                      {gallery.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryInput(idx)}
+                          className="text-xs text-red-500 hover:underline"
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {gallery.length < 10 && (
+                    <button
+                      type="button"
+                      onClick={handleAddGalleryInput}
+                      className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 min-w-[100px] h-20"
+                      title="Tambah gambar gallery"
+                    >
+                      <span className="text-3xl font-bold">+</span>
+                      <span className="text-xs mt-1">Tambah Gambar</span>
+                    </button>
+                  )}
                 </div>
               </div>
               

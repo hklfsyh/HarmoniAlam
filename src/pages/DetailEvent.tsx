@@ -2,7 +2,7 @@
 
 import React from "react";
 // 1. Impor Link dan ArrowLeft
-import { Link, useParams } from "react-router-dom";
+import {  useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import publicApi from "../API/publicApi";
@@ -11,6 +11,7 @@ import EventDescription from "../components/DetailEventComponents/EventDescripti
 import EventRequirements from "../components/DetailEventComponents/EventRequirements";
 import EventSidebar from "../components/DetailEventComponents/EventSidebar";
 import OrganizerCard from "../components/DetailEventComponents/EventOrganizerCard";
+import EventGallery from "../components/DetailEventComponents/EventGallery";
 
 const fetchEventDetail = async (id: string) => {
   const { data } = await publicApi.get(`/events/${id}`);
@@ -19,6 +20,7 @@ const fetchEventDetail = async (id: string) => {
 
 const DetailEventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
 
   const {
     data: event,
@@ -50,14 +52,14 @@ const DetailEventPage: React.FC = () => {
   return (
     <div className="bg-slate-50">
       <main className="container mx-auto py-12 px-6 mt-16">
-        {/* 2. Tambahkan Link "Kembali" di sini */}
-        <Link
-          to="/event"
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
           className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-normal mb-6"
         >
           <ArrowLeft size={20} />
-          Kembali ke Daftar Event
-        </Link>
+          Kembali
+        </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Bagian Kiri (Konten Utama) */}
@@ -66,13 +68,15 @@ const DetailEventPage: React.FC = () => {
             <EventDescription event={event} />
             <EventRequirements event={event} />
           </div>
-
           {/* Bagian Kanan (Sidebar) */}
           <div className="flex flex-col gap-8 sticky top-28 h-fit">
             <EventSidebar event={event} />
             <OrganizerCard event={event} />
           </div>
         </div>
+        {event.gallery && event.gallery.length > 0 && (
+          <EventGallery gallery={event.gallery.map((img: any) => typeof img === 'string' ? img : img.url)} />
+        )}
       </main>
     </div>
   );

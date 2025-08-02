@@ -8,6 +8,7 @@ interface SendEmailModalProps {
   isSending?: boolean;
   recipientName: string;
   recipientEmail: string;
+  extraInput?: React.ReactNode;
 }
 
 const SendEmailModal: React.FC<SendEmailModalProps> = ({ 
@@ -17,6 +18,7 @@ const SendEmailModal: React.FC<SendEmailModalProps> = ({
   isSending = false,
   recipientName,
   recipientEmail,
+  extraInput,
 }) => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -65,6 +67,11 @@ const SendEmailModal: React.FC<SendEmailModalProps> = ({
                     placeholder="Tuliskan pesan Anda di sini..."
                 />
             </div>
+            {extraInput && (
+              <div>
+                {extraInput}
+              </div>
+            )}
         </div>
         <div className="flex justify-end gap-4 mt-6">
           <button onClick={onClose} className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">

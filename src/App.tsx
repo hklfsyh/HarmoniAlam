@@ -24,6 +24,9 @@ import AdminDetailEventPage from './pages/AdminDetailEventPage';
 import LoginRequiredModal from './components/LoginRequiredModal'; 
 import ResetPasswordPage from './pages/ResetPasswordPage'; 
 import NotFoundPage from './pages/NotFoundPage';
+import OrganizerPublicProfilePage from './pages/OrganizerPublicProfile';
+import BookmarkPage from './pages/BookmarkPage';
+
 
 const App: React.FC = () => {
   return (
@@ -41,11 +44,13 @@ const App: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/organizer/pengajuan" element={<PengajuanOrgPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/organizer/public/:id" element={<OrganizerPublicProfilePage />} />
           
           {/* Rute yang Dilindungi */}
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/artikel/create" element={<CreateArticlePage />} />
+            <Route path="/bookmark" element={<BookmarkPage />} />
             
             {/* Rute Organizer */}
             <Route path="/organizer" element={<DashboardOrganizerPage />} />

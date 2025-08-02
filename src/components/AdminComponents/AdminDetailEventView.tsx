@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import adminApi from '../../API/admin';
 import { ArrowLeft, Calendar, Clock, MapPin, Users, Tag } from 'lucide-react';
 import AdminPartisipanTab from './AdminPartisipanTab';
+import EventGallery from '../DetailEventComponents/EventGallery'; // pastikan import ini ada
+
+const apiKey = import.meta.env.VITE_LOCATIONIQ_API_KEY;
 
 //=================================================================
 // KOMPONEN-KOMPONEN LOKAL
@@ -42,7 +45,9 @@ interface AdminEventDetail {
 
 const OverviewTab: React.FC<{ event: AdminEventDetail }> = ({ event }) => (
     <div className="bg-white p-8 rounded-lg shadow-md space-y-8">
-        <div><h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Detail Event</h2><img src={event.imagePath} alt={event.title} className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"/>
+        <div>
+            <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Detail Event</h2>
+            <img src={event.imagePath} alt={event.title} className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"/>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <InfoItem icon={<Calendar />} label="Tanggal" value={new Date(event.eventDate).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />
                 <InfoItem icon={<Clock />} label="Waktu" value={`${formatTime(event.eventTime)} WIB`} />
@@ -50,7 +55,31 @@ const OverviewTab: React.FC<{ event: AdminEventDetail }> = ({ event }) => (
                 <InfoItem icon={<Users />} label="Kapasitas" value={`${event.currentParticipants} / ${event.maxParticipants} orang`} />
                 <InfoItem icon={<Tag />} label="Kategori Event" value={event.category.categoryName} />
             </div>
-        </div><hr/><div className="space-y-6"><InfoSection label="Deskripsi Event">{event.description}</InfoSection><InfoSection label="Kebutuhan yang Harus Dibawa">{event.requiredItems}</InfoSection><InfoSection label="Kebutuhan yang Disediakan">{event.providedItems}</InfoSection></div>
+        </div>
+        <hr/>
+        <div className="space-y-6">
+            <InfoSection label="Deskripsi Event">{event.description}</InfoSection>
+            <InfoSection label="Kebutuhan yang Harus Dibawa">{event.requiredItems}</InfoSection>
+            <InfoSection label="Kebutuhan yang Disediakan">{event.providedItems}</InfoSection>
+        </div>
+        {/* Gallery Event */}
+        {event.gallery && event.gallery.length > 0 && (
+            <EventGallery gallery={event.gallery.map((img: any) => typeof img === 'string' ? img : img.url)} />
+        )}
+        {/* Map Preview */}
+        {event.latitude && event.longitude && (
+            <div className="mt-8">
+                <h2 className="text-xl font-bold text-[#1A3A53] mb-4 text-center">Lokasi Event di Map</h2>
+                <div className="flex justify-center">
+                    <img
+                        src={`https://maps.locationiq.com/v3/staticmap?key=${apiKey}&center=${event.latitude},${event.longitude}&zoom=15&size=600x300&markers=icon:large-red-cutout|${event.latitude},${event.longitude}`}
+                        alt="Map Lokasi Event"
+                        className="rounded-xl shadow border"
+                        style={{ width: '600px', height: '300px', objectFit: 'cover', maxWidth: '100%' }}
+                    />
+                </div>
+            </div>
+        )}
     </div>
 );
 

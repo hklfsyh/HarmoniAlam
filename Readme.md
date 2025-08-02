@@ -14,9 +14,6 @@
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)](https://jwt.io/)
 
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
-![Status](https://img.shields.io/badge/status-Active-success?style=flat-square)
 
 ---
 

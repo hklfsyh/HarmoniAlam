@@ -56,6 +56,7 @@ model Volunteer {
   profilePicture    String?  @map("profile_picture")
   status            UserStatus  @default(ACTIVE)
   createdAt         DateTime @default(now()) @map("created_at")
+  bookmarks         Bookmark[]
 
   eventRegistrations EventRegistration[]
   author             Author?
@@ -111,6 +112,44 @@ model Author {
   articles    Article[]
 }
 
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relasi ke Artikel atau Event (salah satu harus diisi)
+  article   Article? @relation(fields: [articleId], references: [article_id], onDelete: Cascade)
+  articleId Int?     @map("article_id")
+
+  event     Event?   @relation(fields: [eventId], references: [event_id], onDelete: Cascade)
+  eventId   Int?     @map("event_id")
+
+  @@index([articleId])
+  @@index([eventId])
+}
+
+model Bookmark {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+
+  // Relasi ke Volunteer yang membuat bookmark
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [volunteer_id], onDelete: Cascade)
+  volunteerId Int       @map("volunteer_id")
+
+  // Relasi opsional ke Artikel yang di-bookmark
+  article     Article?  @relation(fields: [articleId], references: [article_id], onDelete: Cascade)
+  articleId   Int?      @map("article_id")
+
+  // Relasi opsional ke Event yang di-bookmark
+  event       Event?    @relation(fields: [eventId], references: [event_id], onDelete: Cascade)
+  eventId     Int?      @map("event_id")
+
+  // Memastikan volunteer tidak bisa bookmark item yang sama dua kali
+  @@unique([volunteerId, articleId])
+  @@unique([volunteerId, eventId])
+  @@index([volunteerId])
+}
+
 model Category {
   category_id   Int          @id @default(autoincrement()) @map("category_id")
   categoryName  String       @map("category_name")
@@ -130,6 +169,8 @@ model Event {
   eventDate            DateTime    @db.Date @map("event_date")
   eventTime            DateTime    @db.Time @map("event_time")
   location             String
+  latitude             Float?      
+  longitude            Float?
   description          String
   requiredItems        String?     @map("required_items")
   providedItems        String?     @map("provided_items")
@@ -137,6 +178,8 @@ model Event {
   status               EventStatus @default(upcoming)
   createdAt            DateTime    @default(now()) @map("created_at")
   deletedAt            DateTime?   @map("deleted_at")
+  galleryImages Image[]
+  bookmarks     Bookmark[]
 
   organizer            Organizer   @relation(fields: [organizer_id], references: [organizer_id], onDelete: Cascade)
   category             Category    @relation(fields: [category_id], references: [category_id], onDelete: Restrict)
@@ -154,6 +197,8 @@ model Article {
   status      ArticleStatus @default(draft)
   createdAt   DateTime @default(now()) @map("created_at")
   deletedAt            DateTime?   @map("deleted_at")
+  galleryImages Image[]
+  bookmarks     Bookmark[]
 
   author      Author   @relation(fields: [author_id], references: [author_id], onDelete: Cascade)
   category    Category @relation(fields: [category_id], references: [category_id], onDelete: Restrict)

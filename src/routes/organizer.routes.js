@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyOrganizer, verifyAdmin, verifyOrganizerProfileAccess } = require('../middleware/auth.middleware');
 const multer = require('multer');
-const { registerOrganizer, loginOrganizer, updateOrganizerStatus, getAllOrganizers, getOrganizerById, getMyProfile, updateMyProfile, getOrganizerSubmissions, getOrganizerStats   } = require('../controllers/organizer.controller');
+const { registerOrganizer, loginOrganizer, updateOrganizerStatus, getAllOrganizers, getOrganizerById, getMyProfile, updateMyProfile, getOrganizerSubmissions, getOrganizerStats, getPublicOrganizerProfile   } = require('../controllers/organizer.controller');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -22,5 +22,7 @@ router.get('/submissions', verifyAdmin, getOrganizerSubmissions);
 router.patch('/:id/status', verifyAdmin, updateOrganizerStatus);
 router.get('/', verifyAdmin, getAllOrganizers);
 router.get('/:id', verifyAdmin, getOrganizerById);
+
+router.get('/:id/public', getPublicOrganizerProfile);
 
 module.exports = router;

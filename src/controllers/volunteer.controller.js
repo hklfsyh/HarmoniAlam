@@ -235,15 +235,33 @@ const getMyProfile = async (req, res) => {
         const profile = await prisma.volunteer.findUnique({
             where: { volunteer_id: volunteerId },
             select: {
+                volunteer_id: true,
                 firstName: true,
                 lastName: true,
                 email: true,
                 profilePicture: true,
-                createdAt: true
+                createdAt: true,
+                author: { // Sertakan relasi author
+                    select: {
+                        author_id: true // Ambil author_id
+                    }
+                }
             }
         });
         if (!profile) return res.status(404).json({ message: "Profil tidak ditemukan." });
-        res.status(200).json(profile);
+
+        // Format ulang response untuk menyertakan author_id
+        const formattedProfile = {
+            volunteer_id: profile.volunteer_id,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email,
+            profilePicture: profile.profilePicture,
+            createdAt: profile.createdAt,
+            author_id: profile.author ? profile.author.author_id : null
+        };
+
+        res.status(200).json(formattedProfile);
     } catch (error) {
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }

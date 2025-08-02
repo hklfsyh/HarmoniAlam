@@ -22,6 +22,11 @@ const upload = multer({
     },
 });
 
+const uploadFields = upload.fields([
+    { name: 'image', maxCount: 1 }, // Gambar utama
+    { name: 'gallery', maxCount: 10 } // Maksimal 10 gambar galeri
+]);
+
 // --- Rute GET ---
 router.get('/', getPublicArticles);
 router.get('/latest', getLatestArticles); // <-- Rute baru untuk 3 artikel terbaru
@@ -30,8 +35,8 @@ router.get('/my-articles', verifyAuthenticated, getMyArticles);
 router.get('/:id', getArticleById);
 
 // --- Rute POST, PATCH, DELETE ---
-router.post('/', verifyAuthenticated, upload.single('image'), createArticle);
-router.patch('/:id', verifyAuthenticated, verifyAuthorOrAdmin, upload.single('image'), updateArticle);
+router.post('/', verifyAuthenticated, uploadFields, createArticle);
+router.patch('/:id', verifyAuthenticated, verifyAuthorOrAdmin, uploadFields, updateArticle);
 router.delete('/:id', verifyAuthenticated, verifyAuthorOrAdmin, deleteArticle);
 
 module.exports = router;

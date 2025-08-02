@@ -272,6 +272,43 @@ const verifyEventOwner = async (req, res, next) => {
         return res.status(500).json({ message: "Kesalahan otorisasi." });
     }
 };
+
+const verifyImageOwner = async (req, res, next) => {
+    try {
+        const imageId = parseInt(req.params.id);
+        const user = req.user;
+
+        if (user.isAdmin) return next(); // Admin boleh lanjut
+
+        const image = await prisma.image.findUnique({
+            where: { id: imageId },
+            include: {
+                article: { include: { author: true } },
+                event: { include: { organizer: true } }
+            }
+        });
+
+        if (!image) return res.status(404).json({ message: "Gambar tidak ditemukan." });
+
+        if (image.article) { // Jika gambar milik artikel
+            const author = await prisma.author.findFirst({
+                where: { OR: [{ volunteer_id: user.volunteerId }, { organizer_id: user.organizerId }] }
+            });
+            if (author && author.author_id === image.article.author_id) {
+                return next();
+            }
+        } else if (image.event) { // Jika gambar milik event
+            if (user.organizerId && user.organizerId === image.event.organizer_id) {
+                return next();
+            }
+        }
+
+        return res.status(403).json({ message: "Akses ditolak. Anda bukan pemilik gambar ini." });
+    } catch (error) {
+        console.error("Authorization error in verifyImageOwner:", error);
+        return res.status(500).json({ message: "Kesalahan otorisasi." });
+    }
+};
 module.exports = {
     verifyAdmin,
     verifyOrganizer,
@@ -280,5 +317,6 @@ module.exports = {
     verifyAuthorOrAdmin,
     verifyOrganizerOrAdmin,
     verifyEventOwner,
-    verifyOrganizerProfileAccess
+    verifyOrganizerProfileAccess,
+    verifyImageOwner
 };

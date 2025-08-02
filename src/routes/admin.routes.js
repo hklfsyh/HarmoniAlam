@@ -7,7 +7,8 @@ const {
     loginAdmin,
     getDashboardStats,
     sendEmailToUser,
-    deleteUserAccount // <-- Import fungsi baru
+    deleteUserAccount,
+    sendBroadcast 
 } = require('../controllers/admin.controller');
 
 // Rute otentikasi dan statistik
@@ -17,6 +18,7 @@ router.get('/stats', verifyAdmin, getDashboardStats);
 
 // Rute untuk mengirim email
 router.post('/send-email', verifyAdmin, sendEmailToUser);
+router.post('/broadcast', verifyAdmin, sendBroadcast);
 
 // Rute baru untuk menghapus akun pengguna
 router.delete('/users/:userType/:id', verifyAdmin, deleteUserAccount);

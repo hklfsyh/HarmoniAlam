@@ -5,14 +5,12 @@ const { sendDeletionNotificationEmail } = require('../utils/mailer');
 const createArticle = async (req, res) => {
     try {
         const { title, summary, content, category_id, status } = req.body;
-        const file = req.file;
+        const files = req.files;
+        const mainImage = files?.image?.[0];
+        const galleryImages = files?.gallery;
 
-        if (!title || !summary || !content || !category_id || !file) {
-            return res.status(400).json({ message: "Semua field dan gambar wajib diisi." });
-        }
-
-        if (status && status !== 'publish' && status !== 'draft') {
-            return res.status(400).json({ message: "Nilai status tidak valid. Gunakan 'publish' atau 'draft'." });
+        if (!title || !summary || !content || !category_id || !mainImage) {
+            return res.status(400).json({ message: "Judul, ringkasan, konten, kategori, dan gambar utama wajib diisi." });
         }
 
         const author = await prisma.author.findFirst({
@@ -21,19 +19,29 @@ const createArticle = async (req, res) => {
         if (!author) return res.status(404).json({ message: "Profil penulis tidak ditemukan." });
 
         const folderPath = `articles/${title.replace(/\s+/g, '_')}/`;
-        const imageUrl = await uploadToGCS(file, folderPath);
+        const imageUrl = await uploadToGCS(mainImage, folderPath);
 
         const newArticle = await prisma.article.create({
             data: {
-                title,
-                summary,
-                content,
+                title, summary, content,
                 category_id: parseInt(category_id),
                 author_id: author.author_id,
                 imagePath: imageUrl,
                 status: status || 'draft',
             },
         });
+        
+        if (galleryImages && galleryImages.length > 0) {
+            const galleryUploadPromises = galleryImages.map(file => uploadToGCS(file, `${folderPath}gallery/`));
+            const galleryUrls = await Promise.all(galleryUploadPromises);
+            
+            await prisma.image.createMany({
+                data: galleryUrls.map(url => ({
+                    url: url,
+                    articleId: newArticle.article_id
+                }))
+            });
+        }
 
         res.status(201).json({ message: "Artikel berhasil dibuat", article: newArticle });
     } catch (error) {
@@ -42,47 +50,124 @@ const createArticle = async (req, res) => {
     }
 };
 
-/**
- * PATCH: Mengubah artikel yang sudah ada.
- * Menerima data teks dan/atau file gambar baru untuk memperbarui artikel.
- */
 const updateArticle = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, summary, content, category_id, status } = req.body;
-        const file = req.file;
-        let imageUrl;
+        const { title, summary, content, category_id, status, deleteGalleryImageIds } = req.body;
+        const files = req.files;
+        const mainImage = files?.image?.[0];
+        const galleryImages = files?.gallery;
 
-        if (status && status !== 'publish' && status !== 'draft') {
-            return res.status(400).json({ message: "Nilai status tidak valid. Gunakan 'publish' atau 'draft'." });
-        }
+        // --- KODE DEBUGGING ---
+        console.log("--- Memulai updateArticle ---");
+        console.log("Received body:", req.body);
+        console.log("deleteGalleryImageIds (sebelum parse):", deleteGalleryImageIds);
+        console.log("Tipe data deleteGalleryImageIds:", typeof deleteGalleryImageIds);
+        // ----------------------
+
+        const updateData = { title, summary, content, status, category_id: category_id ? parseInt(category_id) : undefined };
 
         const existingArticle = await prisma.article.findUnique({ where: { article_id: parseInt(id) } });
         if (!existingArticle) return res.status(404).json({ message: "Artikel tidak ditemukan." });
 
-        if (file) {
+        if (deleteGalleryImageIds && deleteGalleryImageIds.length > 0) {
+            try {
+                const idsToDelete = JSON.parse(deleteGalleryImageIds).map(id => parseInt(id));
+                console.log("ID gambar yang akan dihapus (setelah parse):", idsToDelete);
+
+                if (idsToDelete.length > 0) {
+                    const imagesToDelete = await prisma.image.findMany({ where: { id: { in: idsToDelete } } });
+                    const deletePromises = imagesToDelete.map(img => deleteFromGCS(img.url));
+                    await Promise.all(deletePromises);
+                    await prisma.image.deleteMany({ where: { id: { in: idsToDelete } } });
+                    console.log("Gambar galeri berhasil dihapus.");
+                }
+            } catch (parseError) {
+                console.error("Gagal mem-parsing deleteGalleryImageIds:", parseError);
+            }
+        }
+
+        const folderPath = `articles/${existingArticle.title.replace(/\s+/g, '_')}/`;
+
+        if (mainImage) {
             if (existingArticle.imagePath) {
                 await deleteFromGCS(existingArticle.imagePath);
             }
-            const folderPath = `articles/${existingArticle.title.replace(/\s+/g, '_')}/`;
-            imageUrl = await uploadToGCS(file, folderPath);
+            updateData.imagePath = await uploadToGCS(mainImage, folderPath);
+        }
+
+        if (galleryImages && galleryImages.length > 0) {
+            const galleryUploadPromises = galleryImages.map(file => uploadToGCS(file, `${folderPath}gallery/`));
+            const galleryUrls = await Promise.all(galleryUploadPromises);
+            
+            await prisma.image.createMany({
+                data: galleryUrls.map(url => ({
+                    url: url,
+                    articleId: existingArticle.article_id
+                }))
+            });
         }
 
         const updatedArticle = await prisma.article.update({
             where: { article_id: parseInt(id) },
-            data: {
-                title,
-                summary,
-                content,
-                status,
-                category_id: category_id ? parseInt(category_id) : undefined,
-                imagePath: imageUrl,
-            }
+            data: updateData
         });
 
         res.status(200).json({ message: "Artikel berhasil diubah", article: updatedArticle });
     } catch (error) {
         console.error("Error updating article:", error);
+        res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    }
+};
+
+const getArticleById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const article = await prisma.article.findUnique({
+            where: { article_id: parseInt(id), deletedAt: null },
+            include: {
+                category: true,
+                author: {
+                    select: {
+                        volunteer: { select: { firstName: true, lastName: true } },
+                        organizer: { select: { orgName: true } },
+                        admin: { select: { email: true } }
+                    }
+                },
+                // Ambil ID dan URL untuk setiap gambar galeri
+                galleryImages: {
+                    select: {
+                        id: true,
+                        url: true
+                    }
+                }
+            }
+        });
+
+        if (!article) {
+            return res.status(404).json({ message: "Artikel tidak ditemukan." });
+        }
+
+        let authorName = "Penulis Tidak Dikenal";
+        if (article.author.volunteer) {
+            authorName = `${article.author.volunteer.firstName} ${article.author.volunteer.lastName}`;
+        } else if (article.author.organizer) {
+            authorName = article.author.organizer.orgName;
+        } else if (article.author.admin) {
+            authorName = "Admin Harmoni Alam";
+        }
+
+        const formattedArticle = {
+            ...article,
+            authorName: authorName,
+            gallery: article.galleryImages // <-- Sekarang ini adalah array objek {id, url}
+        };
+        delete formattedArticle.author;
+        delete formattedArticle.galleryImages;
+
+        res.status(200).json(formattedArticle);
+    } catch (error) {
+        console.error("Error getting article by ID:", error);
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }
 };
@@ -115,6 +200,7 @@ const getPublicArticles = async (req, res) => {
                 summary: true,
                 createdAt: true,
                 imagePath: true,
+                author_id: true, // <-- Ditambahkan
                 category: {
                     select: {
                         category_id: true,
@@ -149,6 +235,7 @@ const getPublicArticles = async (req, res) => {
                 category: article.category,
                 summary: article.summary,
                 authorName: authorName,
+                author_id: article.author_id, // <-- Ditambahkan
                 createdAt: article.createdAt,
                 image: article.imagePath
             };
@@ -356,55 +443,6 @@ const getMyArticles = async (req, res) => {
  * Menampilkan detail lengkap sebuah artikel, termasuk statusnya.
  * Catatan: Logika untuk menyembunyikan 'draft' dari publik bisa ditambahkan di sini jika diperlukan.
  */
-const getArticleById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const article = await prisma.article.findFirst({
-            where: { article_id: parseInt(id), deletedAt: null },
-            include: {
-                author: {
-                    select: {
-                        volunteer: { select: { firstName: true, lastName: true } },
-                        organizer: { select: { orgName: true } },
-                        admin: { select: { email: true } }
-                    }
-                },
-                category: true, // <-- Diubah untuk mengambil seluruh objek kategori
-            }
-        });
-
-        if (!article) {
-            return res.status(404).json({ message: "Artikel tidak ditemukan." });
-        }
-
-        // Format response agar konsisten
-        let authorName = "Penulis Tidak Dikenal";
-        if (article.author.volunteer) {
-            authorName = `${article.author.volunteer.firstName} ${article.author.volunteer.lastName}`;
-        } else if (article.author.organizer) {
-            authorName = article.author.organizer.orgName;
-        } else if (article.author.admin) {
-            authorName = "Admin Harmoni Alam";
-        }
-
-        const formattedArticle = {
-            article_id: article.article_id,
-            title: article.title,
-            summary: article.summary,
-            content: article.content,
-            imagePath: article.imagePath,
-            status: article.status,
-            createdAt: article.createdAt,
-            category: article.category, // <-- Diubah untuk mengembalikan objek lengkap
-            authorName: authorName
-        };
-
-        res.status(200).json(formattedArticle);
-    } catch (error) {
-        console.error("Error getting article by ID:", error);
-        res.status(500).json({ message: "Terjadi kesalahan pada server." });
-    }
-};
 
 const getLatestArticles = async (req, res) => {
     try {

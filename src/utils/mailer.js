@@ -195,7 +195,7 @@ const sendContactAdminEmail = async (senderName, senderEmail, senderRole, subjec
 };
 const sendPasswordResetEmail = async (email, token) => {
     // PENTING: Ganti URL ini dengan halaman reset password di aplikasi frontend Anda
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}`; 
+    const resetUrl = `https://harmonii-alam.vercel.app/reset-password?token=${token}`; 
 
     const mailOptions = {
         from: `"Harmoni Alam" <${process.env.GMAIL_USER}>`,
@@ -277,6 +277,168 @@ const sendAccountDeletionEmail = async (recipientEmail, userName, reason) => {
     }
 };
 
+const sendNewVolunteerNotificationEmail = async (organizerEmail, eventTitle, volunteerName) => {
+    const mailOptions = {
+        from: `"Notifikasi Harmoni Alam" <${process.env.GMAIL_USER}>`,
+        to: organizerEmail,
+        subject: `Pendaftar Baru untuk Event: ${eventTitle}`,
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:#79B829;text-align:center;">Pendaftar Baru!</h2>
+                <p>Halo,</p>
+                <p>Seorang volunteer baru bernama <b>${volunteerName}</b> telah mendaftar di event Anda, <b>"${eventTitle}"</b>.</p>
+                <p>Anda bisa melihat daftar lengkap pendaftar di dashboard Anda.</p>
+                <p style="margin-top:24px;">Terima kasih,<br><b>Tim Harmoni Alam</b></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Error sending new volunteer notification:', error);
+    }
+};
+
+/**
+ * Mengirim notifikasi ke volunteer jika event diubah atau dibatalkan.
+ */
+const sendEventUpdateNotificationEmail = async (recipientEmail, eventTitle, updateType, reason = '') => {
+    const subject = `Pemberitahuan: Event "${eventTitle}" Telah Di${updateType === 'updated' ? 'perbarui' : 'batalkan'}`;
+    const body = updateType === 'updated'
+        ? `<p>Ada pembaruan informasi untuk event <b>"${eventTitle}"</b> yang Anda ikuti. Silakan periksa kembali detail event di halaman kami untuk melihat perubahan terbaru.</p>`
+        : `<p>Dengan berat hati kami informasikan bahwa event <b>"${eventTitle}"</b> yang akan Anda ikuti telah dibatalkan oleh penyelenggara.</p><p><b>Alasan:</b> ${reason}</p>`;
+
+    const mailOptions = {
+        from: `"Notifikasi Harmoni Alam" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        subject: subject,
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:${updateType === 'updated' ? '#79B829' : '#d9534f'};text-align:center;">Pemberitahuan Event</h2>
+                ${body}
+                <p style="margin-top:24px;">Terima kasih,<br><b>Tim Harmoni Alam</b></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Error sending event update notification:', error);
+    }
+};
+
+/**
+ * Mengirim email ucapan terima kasih ke volunteer setelah event selesai.
+ */
+const sendThankYouForParticipatingEmail = async (recipientEmail, eventTitle, volunteerName) => {
+    const mailOptions = {
+        from: `"Harmoni Alam" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        subject: `Terima Kasih Telah Berpartisipasi di Event ${eventTitle}!`,
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:#79B829;text-align:center;">Terima Kasih, ${volunteerName}!</h2>
+                <p>Kami dari tim Harmoni Alam dan penyelenggara event ingin mengucapkan terima kasih banyak atas partisipasi dan kontribusi Anda dalam event <b>"${eventTitle}"</b>.</p>
+                <p>Semoga pengalaman ini bermanfaat dan kami berharap dapat bertemu Anda lagi di kegiatan selanjutnya!</p>
+                <p style="margin-top:24px;">Salam hangat,<br><b>Tim Harmoni Alam</b></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Error sending thank you email:', error);
+    }
+};
+
+const sendCancellationNotificationEmail = async (organizerEmail, eventTitle, volunteerName) => {
+    const mailOptions = {
+        from: `"Notifikasi Harmoni Alam" <${process.env.GMAIL_USER}>`,
+        to: organizerEmail,
+        subject: `Pembatalan Pendaftaran di Event: ${eventTitle}`,
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:#d9534f;text-align:center;">Pemberitahuan Pembatalan</h2>
+                <p>Halo,</p>
+                <p>Seorang volunteer bernama <b>${volunteerName}</b> telah membatalkan pendaftarannya di event Anda, <b>"${eventTitle}"</b>.</p>
+                <p>Satu slot kini telah tersedia. Anda bisa melihat daftar pendaftar terbaru di dashboard Anda.</p>
+                <p style="margin-top:24px;">Terima kasih,<br><b>Tim Harmoni Alam</b></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Cancellation notification sent to: ${organizerEmail}`);
+    } catch (error) {
+        console.error('Error sending cancellation notification:', error);
+    }
+};
+
+const sendEmailFromOrganizer = async (recipientEmail, organizerName, eventTitle, subject, message) => {
+    const mailOptions = {
+        from: `"${organizerName} via Harmoni Alam" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        subject: `Pesan Mengenai Event "${eventTitle}": ${subject}`,
+        replyTo: process.env.ADMIN_EMAIL_RECIPIENT, // Balasan bisa diarahkan ke admin atau email organizer jika ada
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:#79B829;text-align:center;">Pesan dari ${organizerName}</h2>
+                <p>Anda menerima pesan dari <b>${organizerName}</b> mengenai event <b>"${eventTitle}"</b>.</p>
+                <hr>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+                <hr>
+                <p style="color:#888;font-size:13px;"><i>Ini adalah email otomatis yang dikirim melalui platform Harmoni Alam.</i></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Email from organizer sent to: ${recipientEmail}`);
+    } catch (error) {
+        console.error('Error sending email from organizer:', error);
+        throw new Error('Gagal mengirim email ke volunteer.');
+    }
+};
+
+const sendBroadcastEmail = async (recipientEmails, subject, message) => {
+    const mailOptions = {
+        from: `"Harmoni Alam (Pengumuman)" <${process.env.GMAIL_USER}>`,
+        to: process.env.GMAIL_USER, // Kirim ke diri sendiri
+        bcc: recipientEmails, // Gunakan BCC untuk menyembunyikan daftar penerima
+        subject: subject,
+        html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;">
+                <img src="${EMAIL_LOGO}" alt="Harmoni Alam Logo" style="height:60px;display:block;margin:0 auto 16px auto;">
+                <h2 style="color:#79B829;text-align:center;">Pengumuman dari Harmoni Alam</h2>
+                <hr>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+                <hr>
+                <p style="color:#888;font-size:13px;"><i>Ini adalah email otomatis. Mohon jangan membalas langsung ke alamat email ini.</i></p>
+                ${emailFooter}
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Broadcast email sent to ${recipientEmails.length} recipients.`);
+    } catch (error) {
+        console.error('Error sending broadcast email:', error);
+        throw new Error('Gagal mengirim email broadcast.');
+    }
+};
+
 module.exports = {
     sendVerificationEmail,
     sendApprovalEmail,
@@ -286,5 +448,11 @@ module.exports = {
     sendContactAdminEmail,
     sendPasswordResetEmail,
     sendDirectEmailFromAdmin,
-    sendAccountDeletionEmail
+    sendAccountDeletionEmail,
+    sendNewVolunteerNotificationEmail,
+    sendEventUpdateNotificationEmail,
+    sendThankYouForParticipatingEmail,
+    sendCancellationNotificationEmail,
+    sendEmailFromOrganizer,
+    sendBroadcastEmail
 };

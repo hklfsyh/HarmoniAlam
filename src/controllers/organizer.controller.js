@@ -489,6 +489,57 @@ const getOrganizerStats = async (req, res) => {
     }
 };
 
+const getPublicOrganizerProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const organizerId = parseInt(id);
+
+        const organizer = await prisma.organizer.findFirst({
+            where: {
+                organizer_id: organizerId,
+                status: 'approved', // Hanya tampilkan organizer yang sudah disetujui
+                // Anda juga bisa menambahkan filter soft delete di sini jika sudah diimplementasikan
+            },
+            select: {
+                organizer_id: true, // <-- Ditambahkan
+                orgName: true,
+                orgDescription: true,
+                profilePicture: true,
+                website: true,
+                // Ambil juga daftar event yang akan datang milik organizer ini
+                events: {
+                    where: {
+                        status: 'upcoming',
+                        deletedAt: null // Pastikan event tidak dihapus
+                    },
+                    orderBy: {
+                        eventDate: 'asc'
+                    },
+                    select: {
+                        event_id: true,
+                        title: true,
+                        eventDate: true,
+                        imagePath: true,
+                        location: true,
+                        currentParticipants: true,
+                        maxParticipants: true
+                    }
+                }
+            }
+        });
+
+        if (!organizer) {
+            return res.status(404).json({ message: "Profil organizer tidak ditemukan atau belum aktif." });
+        }
+
+        res.status(200).json(organizer);
+    } catch (error) {
+        console.error("Error getting public organizer profile:", error);
+        res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    }
+};
+
+
 
 module.exports = { 
     registerOrganizer, 
@@ -499,5 +550,6 @@ module.exports = {
     getMyProfile,
     updateMyProfile,
     getOrganizerSubmissions,
-    getOrganizerStats
+    getOrganizerStats,
+    getPublicOrganizerProfile
 };

@@ -11,7 +11,7 @@ const {
     verifyVolunteer 
 } = require('../middleware/auth.middleware');
 
-// Impor semua fungsi controller yang diperlukan
+// Impor fungsi dari controller yang relevan
 const { 
     createEvent, 
     updateEvent, 
@@ -24,36 +24,41 @@ const {
     registerForEvent,
     cancelRegistration,
     getEventStats,
-    getMyRegisteredEvents,
-    getLatestEvents // <-- Tambahkan import baru
+    getLatestEvents,
+    getMyRegisteredEvents
 } = require('../controllers/event.controller');
+const { emailVolunteers } = require('../controllers/communication.controller');
 
-// Konfigurasi Multer
+// Konfigurasi Multer untuk menangani upload file
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+// Konfigurasi untuk menerima gambar utama dan galeri
+const uploadFields = upload.fields([
+    { name: 'image', maxCount: 1 }, 
+    { name: 'gallery', maxCount: 10 } 
+]);
+
 // --- Rute GET ---
+// Rute yang paling spesifik (tanpa parameter) diletakkan di atas
 router.get('/', getPublicEvents);
-router.get('/latest', getLatestEvents); // <-- Rute baru untuk 3 event terbaru
+router.get('/latest', getLatestEvents);
 router.get('/all', verifyAdmin, getAllEventsForAdmin);
 router.get('/my-events', verifyOrganizer, getMyEvents);
 router.get('/stats', verifyOrganizer, getEventStats);
-router.get('/my-registered-events', verifyVolunteer, getMyRegisteredEvents); // Rute untuk volunteer
+router.get('/my-registered-events', verifyVolunteer, getMyRegisteredEvents);
 
-// Rute dengan parameter diletakkan setelah rute spesifik
+// Rute dengan parameter diletakkan di bawah rute spesifik
 router.get('/:id', getEventById);
-
-// PERBAIKAN DI SINI: Tambahkan verifyAuthenticated sebelum verifyEventOwner
 router.get('/:id/volunteers', verifyAuthenticated, verifyEventOwner, getEventVolunteers);
 
-// --- Rute Manajemen Event (POST, PATCH, DELETE) ---
-router.post('/', verifyOrganizer, upload.single('image'), createEvent);
-
-// PERBAIKAN DI SINI: Tambahkan verifyAuthenticated sebelum verifyEventOwner
-router.patch('/:id', verifyAuthenticated, verifyEventOwner, upload.single('image'), updateEvent); 
+// --- Rute Manajemen & Komunikasi Event ---
+router.post('/', verifyOrganizer, uploadFields, createEvent);
+router.patch('/:id', verifyAuthenticated, verifyEventOwner, uploadFields, updateEvent); 
 router.delete('/:id', verifyAuthenticated, verifyEventOwner, deleteEvent);
+router.post('/:id/email-volunteers', verifyAuthenticated, verifyEventOwner, emailVolunteers); // Endpoint baru untuk email
 
 // --- Rute Partisipasi Volunteer ---
 router.post('/:id/register', verifyVolunteer, registerForEvent);

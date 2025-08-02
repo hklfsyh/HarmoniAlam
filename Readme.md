@@ -1,209 +1,331 @@
 <div align="center">
-<!-- Ganti URL ini dengan URL logo Anda yang sudah diunggah -->
-<img src="https://storage.googleapis.com/harmoni_alam/assets/logo-harmoni-alam.png" alt="Harmoni Alam Logo" width="150">
-<h1>Backend API - Harmoni Alam</h1>
-<p><strong>Menghubungkan Relawan dengan Aksi Lingkungan di Seluruh Indonesia</strong></p>
+
+![Harmoni Alam Logo](https://storage.googleapis.com/harmoni_alam/assets/logo-harmoni-alam.png)
+
+# 🌿 Harmoni Alam Backend API
+
+### *Menghubungkan Relawan dengan Aksi Lingkungan di Seluruh Indonesia*
+
+[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io/)
+[![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)](https://jwt.io/)
+
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Status](https://img.shields.io/badge/status-Active-success?style=flat-square)
+
+---
+
+*Backend API untuk platform revolusioner yang menghubungkan sukarelawan dengan penyelenggara acara kegiatan sosial dan lingkungan. Dibangun dengan arsitektur modern, skalabel, dan aman.*
+
 </div>
 
-<p align="center">
-<img alt="Express.js" src="https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=white">
-<img alt="Node.js" src="https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white">
-<img alt="PostgreSQL" src="https://img.shields.io/badge/postgresql-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white">
-<img alt="Prisma" src="https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white">
-<img alt="Google Cloud" src="https://img.shields.io/badge/Google%20Cloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white">
-<img alt="Supabase" src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white">
-<img alt="JWT" src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white">
-</p>
+---
 
-Backend API untuk platform Harmoni Alam, sebuah aplikasi yang dirancang untuk menghubungkan sukarelawan (volunteer) dengan penyelenggara acara (organizer) kegiatan sosial dan lingkungan. API ini dibangun dengan arsitektur yang bersih dan skalabel, memisahkan logika berdasarkan peran pengguna untuk memastikan keamanan dan kemudahan pengelolaan.
+## 🎯 **Tentang Proyek**
 
-✨ Fitur Utama
-Sistem Multi-Peran: Otentikasi dan otorisasi yang terpisah untuk tiga jenis pengguna: Volunteer, Organizer, dan Admin, masing-masing dengan hak akses yang terdefinisi dengan jelas.
+Harmoni Alam adalah platform digital yang memfasilitasi kolaborasi antara volunteer dan organizer dalam kegiatan pelestarian lingkungan. API ini dirancang dengan pendekatan **clean architecture** dan **role-based access control** untuk memastikan keamanan dan skalabilitas maksimal.
 
-Alur Registrasi dan Verifikasi: Proses pendaftaran yang aman untuk Volunteer dan Organizer, dilengkapi dengan verifikasi email wajib untuk memastikan validitas akun.
+<div align="center">
 
-Verifikasi Organizer Berlapis: Sistem di mana pendaftaran Organizer harus melalui verifikasi email, kemudian ditinjau dan disetujui secara manual oleh Admin, termasuk pemeriksaan dokumen pendukung. Organizer yang ditolak dapat mengajukan ulang setelah memperbaiki data.
+```mermaid
+graph LR
+    A[🙋‍♂️ Volunteer] --> B[🌱 Platform]
+    C[🏢 Organizer] --> B
+    D[👨‍💼 Admin] --> B
+    B --> E[🌍 Aksi Lingkungan]
+    
+    style B fill:#4ade80,stroke:#16a34a,stroke-width:3px
+    style E fill:#34d399,stroke:#10b981,stroke-width:2px
+```
 
-Manajemen Konten Dinamis: Kemampuan bagi pengguna yang berwenang (Volunteer, Organizer, Admin) untuk membuat dan mengelola artikel dengan sistem status Draft & Publish serta dukungan galeri foto.
+</div>
 
-Manajemen Event Komprehensif: Fungsionalitas penuh bagi Organizer untuk membuat, mengelola, dan melihat partisipan pada event mereka, lengkap dengan detail lokasi berbasis koordinat dan galeri foto.
+---
 
-Sistem Partisipasi Interaktif: Alur bagi Volunteer untuk mendaftar dan membatalkan pendaftaran pada event, serta fitur Bookmark untuk menyimpan artikel dan event yang menarik.
+## ✨ **Fitur Unggulan**
 
-Keamanan dan Moderasi: Penggunaan JSON Web Tokens (JWT) untuk melindungi endpoint. Admin memiliki kemampuan untuk melakukan soft delete pada konten atau akun pengguna yang melanggar aturan.
+<table>
+<tr>
+<td width="33%" align="center">
 
-Penyimpanan File Cloud: Integrasi dengan Google Cloud Storage untuk mengunggah dan menyimpan gambar serta dokumen secara aman dalam folder yang terstruktur secara dinamis.
+### 🔐 **Multi-Role Security**
+Sistem otentikasi berlapis dengan JWT untuk Volunteer, Organizer, dan Admin
 
-Sistem Notifikasi Email: Komunikasi otomatis melalui email untuk verifikasi akun, notifikasi persetujuan/penolakan, pengingat event, pembatalan, dan komunikasi langsung antara pengguna dan admin.
+</td>
+<td width="33%" align="center">
 
-🛠️ Tech Stack
-Runtime: Node.js
+### 📧 **Smart Verification**
+Alur verifikasi email otomatis dengan approval manual untuk Organizer
 
-Framework: Express.js
+</td>
+<td width="33%" align="center">
 
-Database: PostgreSQL (di-host di Supabase)
+### 📝 **Dynamic Content**
+Manajemen artikel dan event dengan status Draft/Publish dan galeri foto
 
-ORM: Prisma
+</td>
+</tr>
+<tr>
+<td width="33%" align="center">
 
-Otentikasi: JSON Web Token (JWT)
+### 🎯 **Event Management**
+Platform komprehensif untuk membuat dan mengelola event lingkungan
 
-Password Hashing: Bcrypt
+</td>
+<td width="33%" align="center">
 
-Pengiriman Email: Nodemailer
+### 🔖 **Interactive Features**
+Sistem bookmark dan registrasi event yang responsif
 
-Penyimpanan File: Google Cloud Storage
+</td>
+<td width="33%" align="center">
 
-Deployment: Google Cloud Run
+### ☁️ **Cloud Integration**
+Penyimpanan file aman dengan Google Cloud Storage
 
-Environment Variables: Dotenv
+</td>
+</tr>
+</table>
 
-🚀 Instalasi & Menjalankan Proyek
-Untuk menjalankan proyek ini di lingkungan lokal Anda, ikuti langkah-langkah berikut:
+---
 
-1. Clone Repositori
+## 🛠️ **Tech Stack**
+
+<div align="center">
+
+| **Kategori** | **Teknologi** | **Deskripsi** |
+|:---:|:---:|:---|
+| 🖥️ **Runtime** | Node.js | JavaScript runtime environment |
+| 🚀 **Framework** | Express.js | Fast, unopinionated web framework |
+| 🗄️ **Database** | PostgreSQL + Supabase | Managed PostgreSQL database |
+| 🔧 **ORM** | Prisma | Next-generation ORM for Node.js |
+| 🔒 **Auth** | JWT + Bcrypt | Secure authentication & hashing |
+| 📧 **Email** | Nodemailer | Email delivery service |
+| ☁️ **Storage** | Google Cloud Storage | Scalable object storage |
+| 🚀 **Deploy** | Google Cloud Run | Serverless container platform |
+
+</div>
+
+---
+
+## 🚀 **Quick Start**
+
+### **Prerequisites**
+- Node.js (v16 atau lebih tinggi)
+- PostgreSQL database (atau akun Supabase)
+- Google Cloud Platform account
+- Gmail account untuk email service
+
+### **Installation**
+
+```bash
+# 1️⃣ Clone repository
 git clone https://github.com/hklfsyh/HarmoniAlam.git
 cd HarmoniAlam
 
-2. Install Dependencies
+# 2️⃣ Install dependencies
 npm install
 
-3. Siapkan Environment Variables
-Buat file baru bernama .env di root proyek. Salin dan sesuaikan template di bawah ini dengan konfigurasi Anda.
+# 3️⃣ Setup environment variables
+cp .env.example .env
+# Edit .env file dengan konfigurasi Anda
 
-# URL Koneksi Database (Supabase Pooler direkomendasikan)
-DATABASE_URL="postgresql://postgres.xxx:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
-
-# Port untuk server lokal
-PORT=3000
-
-# Kunci rahasia untuk JWT (ganti dengan string acak yang kuat)
-JWT_SECRET="GANTI_DENGAN_KUNCI_RAHASIA_YANG_SANGAT_ACAK"
-
-# URL Frontend (untuk link di email)
-FRONTEND_URL="http://localhost:5173"
-
-# Konfigurasi Google Cloud Storage
-GCS_PROJECT_ID="ID_PROYEK_GCP_ANDA"
-GCS_BUCKET_NAME="NAMA_BUCKET_GCS_ANDA"
-GCS_KEYFILE_PATH="./gcs-credentials.json"
-
-# Kredensial Nodemailer (Gunakan App Password dari Google)
-GMAIL_USER="email.aplikasi.anda@gmail.com"
-GMAIL_APP_PASSWORD="password_16_digit_dari_google"
-
-# Email Admin untuk Menerima Notifikasi
-ADMIN_EMAIL_RECIPIENT="email.pribadi.admin@gmail.com"
-
-4. Jalankan Migrasi Database
-Perintah ini akan membuat semua tabel di database Anda sesuai dengan skema Prisma.
-
+# 4️⃣ Run database migrations
 npx prisma migrate dev
 
-5. Jalankan Server
-Server akan berjalan dalam mode development dengan auto-reload menggunakan nodemon.
-
+# 5️⃣ Start development server
 npm run dev
-
-API Anda sekarang berjalan di http://localhost:3000.
-
-🏛️ Arsitektur & Desain Database
-Struktur backend ini dirancang dengan pemisahan tanggung jawab yang jelas untuk setiap komponen.
-
-Struktur Folder: Kode diorganisir ke dalam folder config, controllers, middleware, routes, dan utils untuk menjaga kerapian.
-
-Model Data Utama:
-
-Volunteer, Organizer, Admin: Tiga entitas pengguna dipisahkan ke dalam tabel yang berbeda untuk isolasi data dan keamanan.
-
-Author: Model perantara yang menghubungkan ketiga jenis pengguna ke model Article, memungkinkan siapa saja untuk menjadi penulis tanpa mengacaukan relasi.
-
-Event & Article: Sumber daya utama yang dibuat oleh pengguna. Event hanya bisa dibuat oleh Organizer, sedangkan Artikel bisa dibuat oleh siapa saja.
-
-EventRegistration: Tabel penghubung (join table) yang mencatat partisipasi seorang Volunteer dalam sebuah Event.
-
-Bookmark: Tabel yang menyimpan event atau artikel yang disimpan oleh Volunteer.
-
-Image: Tabel untuk menyimpan URL gambar galeri yang terhubung ke Event atau Artikel.
-
-📊 Diagram Alur Kerja Backend
-Diagram ini mengilustrasikan alur request dari pengguna hingga ke database dan layanan cloud lainnya.
-
-graph TD
-    %% Styling
-    classDef user fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef backend fill:#dcfce7,stroke:#22c55e,stroke-width:2px;
-    classDef external fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px;
-
-    subgraph Pengguna
-        A[<img src='https://www.gstatic.com/images/icons/material/system/2x/account_circle_black_48dp.png' width='30' /><br>Volunteer]
-        B[<img src='https://www.gstatic.com/images/icons/material/system/2x/group_black_48dp.png' width='30' /><br>Organizer]
-        C[<img src='https://www.gstatic.com/images/icons/material/system/2x/admin_panel_settings_black_48dp.png' width='30' /><br>Admin]
-    end
-    class A,B,C user;
-
-    subgraph "Backend API (Cloud Run)"
-        D[Express App <br> Routes]
-        E[Middleware <br> Otentikasi & Otorisasi]
-        F[Controllers <br> Logika Bisnis]
-        G[Prisma Client <br> ORM]
-    end
-    class D,E,F,G backend;
-
-    subgraph "Layanan Eksternal"
-        H[(<img src='https://cdn.worldvectorlogo.com/logos/supabase-logo-icon.svg' width='25' /><br>Supabase DB)]
-        I[(<img src='https://www.gstatic.com/images/branding/product/2x/cloud_storage_48dp.png' width='25' /><br>GCS Buckets)]
-        J[(<img src='https://www.gstatic.com/images/icons/material/system/2x/mail_black_48dp.png' width='25' /><br>Nodemailer)]
-    end
-    class H,I,J external;
-
-    A -- HTTP Request --> D
-    B -- HTTP Request --> D
-    C -- HTTP Request --> D
-    
-    D -- Meneruskan Request --> E
-    E -- Jika valid --> F
-    F -- Query Data --> G
-    F -- Upload/Delete File --> I
-    F -- Kirim Email --> J
-    G -- Koneksi DB --> H
-
-🧪 Pengujian API (Postman)
-Seluruh fungsionalitas API dapat diuji menggunakan Postman.
-
-Langkah Pengujian:
-Jalankan Proyek: Pastikan server API berjalan secara lokal (npm run dev).
-
-Gunakan Koleksi Postman: Dokumentasi lengkap dan koleksi siap pakai tersedia untuk diimpor ke Postman.
-
-<a href="https://documenter.getpostman.com/view/36349178/2sB34kEz5n" target="_blank">
-<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">
-</a>
-
-Alur Pengujian:
-
-Gunakan endpoint registrasi dan login (/api/volunteer/login, /api/organizer/login, /api/admin/login) untuk mendapatkan Token JWT.
-
-Untuk endpoint yang memerlukan otorisasi, buka tab Headers di Postman dan tambahkan:
-
-Key: Authorization
-
-Value: Bearer <TOKEN_JWT_ANDA>
-
-Untuk request yang mengunggah file (seperti membuat artikel atau event), gunakan tab Body → form-data.
-
-☁️ Alur Deployment
-Aplikasi ini dirancang untuk di-deploy menggunakan arsitektur modern dan skalabel.
-
-Infrastruktur:
-Database: Dihosting di Supabase sebagai layanan PostgreSQL terkelola (managed database).
-
-Aplikasi API: Dijalankan sebagai container di Google Cloud Run, sebuah platform serverless yang otomatis menskalakan instance berdasarkan traffic.
-
-Proses Deployment:
-Deployment API ini dilakukan dengan meng-container-isasi aplikasi menggunakan Docker dan menjalankannya di Google Cloud Run. Proses ini memanfaatkan beberapa layanan Google Cloud untuk memastikan deployment yang aman dan otomatis. Alur kerjanya adalah sebagai berikut: developer menjalankan perintah gcloud run deploy --source . atau gcloud builds submit dari terminal. Perintah ini akan mengunggah kode sumber ke Google Cloud Build.
-
-Cloud Build kemudian akan membaca Dockerfile yang ada di root proyek untuk membangun sebuah container image. Image yang berhasil dibuat akan disimpan di Artifact Registry. Selanjutnya, Google Cloud Run akan menarik image terbaru tersebut dan men-deploy-nya sebagai revisi baru dari layanan. Saat container berjalan, semua variabel lingkungan yang sensitif seperti DATABASE_URL dan JWT_SECRET akan diinjeksi secara aman dari Google Secret Manager. Setelah layanan berhasil berjalan, developer harus menjalankan npx prisma migrate deploy secara manual untuk menyinkronkan skema database di Supabase dengan kode terbaru.
+```
 
 <div align="center">
-<strong>Dibuat dengan ❤️ untuk lingkungan yang lebih baik</strong>
+
+🎉 **API berhasil berjalan di** `http://localhost:3000`
+
 </div>
+
+---
+
+## ⚙️ **Environment Setup**
+
+Buat file `.env` di root directory dengan konfigurasi berikut:
+
+```env
+# 🗄️ Database Configuration
+DATABASE_URL="postgresql://postgres.xxx:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+# 🌐 Server Configuration
+PORT=3000
+FRONTEND_URL="http://localhost:5173"
+
+# 🔐 Security
+JWT_SECRET="your-super-secret-jwt-key-here"
+
+# ☁️ Google Cloud Storage
+GCS_PROJECT_ID="your-gcp-project-id"
+GCS_BUCKET_NAME="your-gcs-bucket-name"
+GCS_KEYFILE_PATH="./gcs-credentials.json"
+
+# 📧 Email Service
+GMAIL_USER="your-app-email@gmail.com"
+GMAIL_APP_PASSWORD="your-16-digit-app-password"
+ADMIN_EMAIL_RECIPIENT="admin@yourcompany.com"
+```
+
+---
+
+## 🏗️ **Architecture Overview**
+
+<div align="center">
+
+```mermaid
+graph TB
+    subgraph "👥 Users"
+        U1[🙋‍♂️ Volunteer]
+        U2[🏢 Organizer]
+        U3[👨‍💼 Admin]
+    end
+    
+    subgraph "🖥️ Backend API"
+        A[🚀 Express Routes]
+        B[🛡️ Auth Middleware]
+        C[🎯 Controllers]
+        D[🔧 Prisma ORM]
+    end
+    
+    subgraph "☁️ External Services"
+        E[📊 Supabase DB]
+        F[💾 Google Cloud Storage]
+        G[📧 Email Service]
+    end
+    
+    U1 --> A
+    U2 --> A
+    U3 --> A
+    A --> B
+    B --> C
+    C --> D
+    C --> F
+    C --> G
+    D --> E
+    
+    classDef users fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    classDef backend fill:#dcfce7,stroke:#22c55e,stroke-width:2px
+    classDef external fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    
+    class U1,U2,U3 users
+    class A,B,C,D backend
+    class E,F,G external
+```
+
+</div>
+
+### **📁 Project Structure**
+
+```
+HarmoniAlam/
+├── 📁 config/          # Database & service configurations
+├── 📁 controllers/     # Business logic handlers
+├── 📁 middleware/      # Authentication & validation
+├── 📁 routes/          # API endpoint definitions
+├── 📁 utils/           # Helper functions
+├── 📁 prisma/          # Database schema & migrations
+├── 📄 server.js        # Application entry point
+└── 📄 .env             # Environment variables
+```
+
+---
+
+## 🧪 **API Testing**
+
+Test semua endpoint menggunakan Postman collection yang telah disiapkan:
+
+<div align="center">
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://documenter.getpostman.com/view/36349178/2sB34kEz5n)
+
+</div>
+
+### **🔑 Authentication Flow**
+
+1. **Register** → Pilih role (Volunteer/Organizer)
+2. **Email Verification** → Klik link di email
+3. **Login** → Dapatkan JWT token
+4. **Access Protected Routes** → Gunakan `Bearer <token>`
+
+### **📋 Testing Checklist**
+
+- [ ] User registration & verification
+- [ ] JWT authentication
+- [ ] Role-based access control
+- [ ] CRUD operations for events & articles
+- [ ] File upload functionality
+- [ ] Email notifications
+
+---
+
+## 🌐 **Deployment**
+
+### **☁️ Google Cloud Run Deployment**
+
+```bash
+# 1️⃣ Build and deploy
+gcloud run deploy --source .
+
+# 2️⃣ Update database schema
+npx prisma migrate deploy
+
+# 3️⃣ Configure environment variables in Cloud Console
+```
+
+### **🔧 Production Checklist**
+
+- [ ] Environment variables configured in Secret Manager
+- [ ] Database migrations applied
+- [ ] Cloud Storage bucket permissions set
+- [ ] Domain & SSL certificates configured
+- [ ] Monitoring & logging enabled
+
+---
+
+## 📊 **Database Schema**
+
+<div align="center">
+
+```mermaid
+erDiagram
+    VOLUNTEER ||--o{ AUTHOR : creates
+    ORGANIZER ||--o{ AUTHOR : creates
+    ADMIN ||--o{ AUTHOR : creates
+    
+    AUTHOR ||--o{ ARTICLE : writes
+    ORGANIZER ||--o{ EVENT : organizes
+    
+    VOLUNTEER ||--o{ EVENT_REGISTRATION : registers
+    EVENT ||--o{ EVENT_REGISTRATION : has
+    
+    VOLUNTEER ||--o{ BOOKMARK : saves
+    ARTICLE ||--o{ BOOKMARK : bookmarked
+    EVENT ||--o{ BOOKMARK : bookmarked
+    
+    ARTICLE ||--o{ IMAGE : contains
+    EVENT ||--o{ IMAGE : contains
+```
+
+</div>
+
+---
+
+
+<div align="center">
+
+### 🌱 **Dibuat dengan ❤️ untuk lingkungan yang lebih baik**
+
+*"Setiap aksi kecil untuk lingkungan adalah langkah besar untuk masa depan"*
+
+---
+

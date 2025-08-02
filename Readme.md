@@ -1,6 +1,6 @@
 <div align="center">
 
-![Harmoni Alam Logo](https://storage.googleapis.com/harmoni_alam/assets/logo-harmoni-alam.png)
+![Harmoni Alam Logo](https://storage.googleapis.com/harmoni_alam/Logo_HarmoniAlam.png)
 
 # 🌿 Harmoni Alam Backend API
 

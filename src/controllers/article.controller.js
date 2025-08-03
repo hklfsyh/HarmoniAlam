@@ -252,8 +252,14 @@ const getPublicArticles = async (req, res) => {
 const deleteArticle = async (req, res) => {
     try {
         const { id } = req.params;
-        const { reason } = req.body;
+        // Fix: avoid destructuring if req.body is undefined
+        const reason = req.body ? req.body.reason : undefined;
         const loggedInUser = req.user; // Info pengguna dari token
+        console.log('--- [deleteArticle] Controller Started ---');
+        console.log('Article ID to delete:', id);
+        console.log('User from token:', loggedInUser);
+        console.log('Request body:', req.body);
+        console.log('Request headers authorization:', req.headers.authorization);
 
         // 1. Cari artikel dan data penulisnya
         const articleToDelete = await prisma.article.findUnique({

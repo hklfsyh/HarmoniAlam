@@ -431,7 +431,6 @@ const getOrganizerStats = async (req, res) => {
     try {
         const organizerId = req.user.organizerId;
 
-        // Cari author_id yang terhubung dengan organizer ini
         const author = await prisma.author.findUnique({
             where: { organizer_id: organizerId },
             select: { author_id: true }
@@ -446,24 +445,33 @@ const getOrganizerStats = async (req, res) => {
             participantSum,
             articleCount
         ] = await Promise.all([
-            // Hitung total, upcoming, dan completed event
+            // Hitung total, upcoming, dan completed event yang tidak dihapus
             prisma.event.groupBy({
                 by: ['status'],
-                where: { organizer_id: organizerId },
+                where: { 
+                    organizer_id: organizerId,
+                    deletedAt: null // <-- Filter ditambahkan
+                },
                 _count: {
                     status: true,
                 },
             }),
-            // Jumlahkan semua partisipan
+            // Jumlahkan semua partisipan dari event yang tidak dihapus
             prisma.event.aggregate({
-                where: { organizer_id: organizerId },
+                where: { 
+                    organizer_id: organizerId,
+                    deletedAt: null // <-- Filter ditambahkan
+                },
                 _sum: {
                     currentParticipants: true,
                 },
             }),
-            // Hitung total artikel
+            // Hitung total artikel yang tidak dihapus
             prisma.article.count({
-                where: { author_id: author.author_id }
+                where: { 
+                    author_id: author.author_id,
+                    deletedAt: null // <-- Filter ditambahkan
+                }
             })
         ]);
 

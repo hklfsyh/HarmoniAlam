@@ -156,7 +156,7 @@ const updateEvent = async (req, res) => {
 const deleteEvent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { reason } = req.body;
+        const reason = req.body ? req.body.reason : undefined;
         const loggedInUser = req.user;
 
         const eventToDelete = await prisma.event.findUnique({

@@ -1,12 +1,16 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import organizerApi from '../../API/organizer';
 import { ArrowLeft, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import ConfirmationModal from '../ConfirmationModal';
+import SuccessModal from '../SuccessModal';
+import ErrorModal from '../ErrorModal';
 
 interface ViewArticleDetailProps {
   articleId: number;
   onBack: () => void;
   onEdit: () => void;
+  onDelete?: () => void; // Callback setelah berhasil hapus
 }
 
 // Fungsi untuk mengambil detail artikel dari API
@@ -15,14 +19,60 @@ const fetchArticleDetail = async (id: number) => {
     return data;
 };
 
-const ViewArticleDetail: React.FC<ViewArticleDetailProps> = ({ articleId, onBack, onEdit }) => {
+// Fungsi untuk menghapus artikel
+const deleteArticle = async (id: number) => {
+    const { data } = await organizerApi.delete(`/articles/${id}`);
+    return data;
+};
+
+const ViewArticleDetail: React.FC<ViewArticleDetailProps> = ({ articleId, onBack, onEdit, onDelete }) => {
+    const queryClient = useQueryClient();
+    const [galleryIdx, setGalleryIdx] = useState(0);
+    
+    // State untuk modal
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    
     const { data: article, isLoading, isError, error } = useQuery({
         queryKey: ['organizerArticleDetail', articleId],
         queryFn: () => fetchArticleDetail(articleId),
         enabled: !!articleId,
     });
 
-    const [galleryIdx, setGalleryIdx] = React.useState(0);
+    // Mutation untuk delete artikel
+    const deleteMutation = useMutation({
+        mutationFn: deleteArticle,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['organizerArticles'] });
+            setModalMessage('Artikel berhasil dihapus.');
+            setIsSuccessModalOpen(true);
+        },
+        onError: (error: any) => {
+            setModalMessage(error.response?.data?.message || 'Gagal menghapus artikel.');
+            setIsErrorModalOpen(true);
+        }
+    });
+
+    // Handler functions
+    const handleDeleteClick = () => {
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        deleteMutation.mutate(articleId);
+        setIsDeleteConfirmOpen(false);
+    };
+
+    const handleSuccessModalClose = () => {
+        setIsSuccessModalOpen(false);
+        if (onDelete) {
+            onDelete(); // Callback ke parent component
+        } else {
+            onBack(); // Fallback ke onBack jika onDelete tidak ada
+        }
+    };
 
     if (isLoading) return <div className="p-8 text-center">Memuat detail artikel...</div>;
     if (isError) return <div className="p-8 text-center text-red-500">Gagal memuat artikel: {error.message}</div>;
@@ -34,7 +84,8 @@ const ViewArticleDetail: React.FC<ViewArticleDetailProps> = ({ articleId, onBack
     const nextGallery = () => setGalleryIdx((prev) => (prev === gallery.length - 1 ? 0 : prev + 1));
 
     return (
-        <div className="bg-white p-8 rounded-lg shadow-md">
+        <>
+            <div className="bg-white p-8 rounded-lg shadow-md">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <button onClick={onBack} className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold">
@@ -45,8 +96,12 @@ const ViewArticleDetail: React.FC<ViewArticleDetailProps> = ({ articleId, onBack
                     <button onClick={onEdit} className="bg-[#79B829] text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-opacity-90">
                         Edit Artikel
                     </button>
-                    <button className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-red-700">
-                        Hapus Artikel
+                    <button 
+                        onClick={handleDeleteClick}
+                        disabled={deleteMutation.isPending}
+                        className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-red-700 disabled:bg-red-400"
+                    >
+                        {deleteMutation.isPending ? 'Menghapus...' : 'Hapus Artikel'}
                     </button>
                 </div>
             </div>
@@ -126,6 +181,37 @@ const ViewArticleDetail: React.FC<ViewArticleDetailProps> = ({ articleId, onBack
                 </div>
             )}
         </div>
+
+        {/* Modal Konfirmasi Hapus */}
+        <ConfirmationModal
+            isOpen={isDeleteConfirmOpen}
+            onClose={() => setIsDeleteConfirmOpen(false)}
+            onConfirm={handleDeleteConfirm}
+            title="Konfirmasi Hapus Artikel"
+            message="Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat dibatalkan."
+            confirmText="Hapus"
+            cancelText="Batal"
+            isConfirming={deleteMutation.isPending}
+        />
+
+        {/* Modal Success */}
+        <SuccessModal
+            isOpen={isSuccessModalOpen}
+            onClose={handleSuccessModalClose}
+            title="Berhasil!"
+            message={modalMessage}
+            buttonText="Selesai"
+        />
+
+        {/* Modal Error */}
+        <ErrorModal
+            isOpen={isErrorModalOpen}
+            onClose={() => setIsErrorModalOpen(false)}
+            title="Gagal!"
+            message={modalMessage}
+            buttonText="Tutup"
+        />
+        </>
     );
 };
 

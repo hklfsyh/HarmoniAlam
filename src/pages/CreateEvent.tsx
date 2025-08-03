@@ -275,53 +275,51 @@ const CreateEventPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold">Lokasi Event</label>
-                <input name="location" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                <input name="location" onChange={handleChange} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                 {formErrors.location && <p className="text-xs text-red-600 mt-1">{formErrors.location}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold">Deskripsi Event</label>
-                <textarea name="description" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                <textarea name="description" onChange={handleChange} required rows={4} className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                 {formErrors.description && <p className="text-xs text-red-600 mt-1">{formErrors.description}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold">Kebutuhan yang Harus Dibawa</label>
-                <textarea name="requiredItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                <textarea name="requiredItems" onChange={handleChange} required rows={4} className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                 {formErrors.requiredItems && <p className="text-xs text-red-600 mt-1">{formErrors.requiredItems}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold">Kebutuhan yang Disediakan</label>
-                <textarea name="providedItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                <textarea name="providedItems" onChange={handleChange} required rows={4} className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                 {formErrors.providedItems && <p className="text-xs text-red-600 mt-1">{formErrors.providedItems}</p>}
               </div>
               
-              {/* --- UI UPLOAD GAMBAR DIPERBARUI --- */}
               <div>
                 <label className="block text-sm font-semibold mb-2">Gambar</label>
-                <div className="mt-1 flex items-center gap-4">
+                <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   {imagePreview && (
-                    <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />
+                    <img src={imagePreview} alt="Preview" className="h-20 w-20 sm:h-24 sm:w-24 object-cover rounded-lg" />
                   )}
-                  <label htmlFor="file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
-                    <UploadCloud size={24} className="mb-2"/>
-                    <span>{image ? image.name : 'Klik untuk memilih gambar'}</span>
+                  <label htmlFor="file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
+                    <UploadCloud size={20} className="mb-2"/>
+                    <span className="text-xs sm:text-sm">{image ? image.name : 'Klik untuk memilih gambar'}</span>
                     <input id="file-upload" name="image" type="file" className="sr-only" onChange={handleFileChange} required accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
                   </label>
                 </div>
                 {formErrors.image && <p className="text-xs text-red-600 mt-1">{formErrors.image}</p>}
               </div>
 
-              {/* --- UI UPLOAD GALERI GAMBAR --- */}
               <div>
                 <label className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</label>
-                <div className="mt-1 flex flex-wrap gap-4">
+                <div className="mt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                   {gallery.map((file, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-2">
                       {galleryPreviews[idx] && (
-                        <img src={galleryPreviews[idx]} alt={`Preview Gallery ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg" />
+                        <img src={galleryPreviews[idx]} alt={`Preview Gallery ${idx + 1}`} className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-lg" />
                       )}
-                      <label htmlFor={`gallery-upload-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 min-w-[100px]">
-                        <UploadCloud size={20} className="mb-1"/>
-                        <span className="text-xs">{file ? file.name : 'Pilih gambar'}</span>
+                      <label htmlFor={`gallery-upload-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20">
+                        <UploadCloud size={16} className="mb-1"/>
+                        <span className="text-xs hidden sm:block">{file ? file.name.substring(0,8)+"..." : 'Pilih'}</span>
                         <input
                           id={`gallery-upload-${idx}`}
                           type="file"
@@ -345,24 +343,23 @@ const CreateEventPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleAddGalleryInput}
-                      className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 min-w-[100px] h-20"
+                      className="flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20"
                       title="Tambah gambar gallery"
                     >
-                      <span className="text-3xl font-bold">+</span>
-                      <span className="text-xs mt-1">Tambah Gambar</span>
+                      <span className="text-xl sm:text-2xl font-bold">+</span>
+                      <span className="text-xs mt-1 hidden sm:block">Tambah</span>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* --- INPUT KOORDINAT --- */}
               <div>
                 <label className="block text-sm font-semibold mb-2">Tandai Lokasi Event di Map</label>
-                <div className="mb-2">
+                <div className="mb-4">
                   <MapContainer
                     center={[-6.2, 106.8]}
                     zoom={13}
-                    style={{ height: '300px', width: '100%' }}
+                    style={{ height: '250px', width: '100%' }}
                     scrollWheelZoom={true}
                   >
                     <TileLayer
@@ -377,17 +374,39 @@ const CreateEventPage: React.FC = () => {
                     />
                   </MapContainer>
                 </div>
-                <div className="flex gap-4 mt-2">
-                  <input type="text" name="latitude" value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" className="px-4 py-2 border rounded-lg" required />
-                  <input type="text" name="longitude" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" className="px-4 py-2 border rounded-lg" required />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Latitude</label>
+                    <input 
+                      type="text" 
+                      name="latitude" 
+                      value={latitude} 
+                      onChange={e => setLatitude(e.target.value)} 
+                      placeholder="Latitude" 
+                      className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Longitude</label>
+                    <input 
+                      type="text" 
+                      name="longitude" 
+                      value={longitude} 
+                      onChange={e => setLongitude(e.target.value)} 
+                      placeholder="Longitude" 
+                      className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" 
+                      required 
+                    />
+                  </div>
                 </div>
                 {formErrors.locationMap && <p className="text-xs text-red-600 mt-1">{formErrors.locationMap}</p>}
-                <p className="text-xs text-gray-500 mt-1">Klik pada map untuk memilih lokasi event. Latitude dan longitude akan terisi otomatis.</p>
+                <p className="text-xs text-gray-500 mt-2">Klik pada map untuk memilih lokasi event. Latitude dan longitude akan terisi otomatis.</p>
               </div>
 
-              <div className="flex justify-end gap-4 pt-4">
-                <button type="reset" className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Reset Form</button>
-                <button type="submit" disabled={mutation.isPending} className="px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
+                <button type="reset" className="px-4 sm:px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100 text-sm sm:text-base">Reset Form</button>
+                <button type="submit" disabled={mutation.isPending} className="px-4 sm:px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400 text-sm sm:text-base">
                   {mutation.isPending ? 'Membuat Event...' : 'Buat Event'}
                 </button>
               </div>

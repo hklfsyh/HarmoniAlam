@@ -43,8 +43,11 @@ const SendEmailModal: React.FC<SendEmailModalProps> = ({
           </button>
         </div>
         <div className="text-left mb-4 bg-slate-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-500">Kepada:</p>
-            <p className="font-semibold text-[#1A3A53]">{recipientName} <span className="text-gray-400 font-normal">&lt;{recipientEmail}&gt;</span></p>
+            <p className="text-sm text-gray-500 mb-1">Kepada:</p>
+            <div className="break-words">
+                <p className="font-semibold text-[#1A3A53] break-words">{recipientName}</p>
+                <p className="text-gray-400 font-normal text-sm break-all">&lt;{recipientEmail}&gt;</p>
+            </div>
         </div>
         <div className="space-y-4">
             <div>

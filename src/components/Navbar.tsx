@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import volunteerApi from '../API/volunteer';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, LogOut, Mail, User } from 'lucide-react';
+import { ChevronDown, LogOut, Mail, User, Menu, X } from 'lucide-react';
 import ContactAdminModal from './ContactAdminModal';
 import SuccessModal from './SuccessModal';
 import ErrorModal from './ErrorModal';
@@ -32,8 +32,10 @@ const Navbar: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -70,12 +72,15 @@ const Navbar: React.FC = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
     }
-    if (dropdownOpen) {
+    if (dropdownOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownOpen]);
+  }, [dropdownOpen, mobileMenuOpen]);
 
   // Scroll effect for transparency
   useEffect(() => {
@@ -238,14 +243,92 @@ const Navbar: React.FC = () => {
       );
     }
     return (
-      <div className="flex items-center space-x-4">
-        <Link to="/login" className="px-4 py-2 text-center text-[#1A3A53] border border-[#1A3A53] rounded-md hover:bg-slate-100 font-normal transition-colors">
-          Login
-        </Link>
-        <Link to="/register" className="px-4 py-2 text-center text-white bg-[#1A3A53] rounded-md hover:bg-[#79B829] font-normal transition-colors">
-          Register
-        </Link>
-      </div>
+      <>
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Link to="/login" className="px-4 py-2 text-center text-[#1A3A53] border border-[#1A3A53] rounded-md hover:bg-slate-100 font-normal transition-colors">
+            Login
+          </Link>
+          <Link to="/register" className="px-4 py-2 text-center text-white bg-[#1A3A53] rounded-md hover:bg-[#79B829] font-normal transition-colors">
+            Register
+          </Link>
+        </div>
+        
+        {/* Mobile Hamburger Menu */}
+        <div className="md:hidden relative" ref={mobileMenuRef}>
+          <button
+            className="p-2 rounded-md hover:bg-slate-100 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? (
+              <X size={24} className="text-[#1A3A53]" />
+            ) : (
+              <Menu size={24} className="text-[#1A3A53]" />
+            )}
+          </button>
+          
+          {mobileMenuOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-100 z-50 animate-fadeIn">
+              <div className="py-2 px-2">
+                {/* Navigation Links */}
+                <div className="border-b border-slate-100 pb-2 mb-2">
+                  <Link 
+                    to="/" 
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Home
+                  </Link>
+                  <Link 
+                    to="/event" 
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Event
+                  </Link>
+                  <Link 
+                    to="/artikel" 
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    Artikel
+                  </Link>
+                </div>
+
+                {/* Action Buttons */}
+                <Link 
+                  to="/login" 
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-[#1A3A53] transition-colors text-sm font-medium w-full border border-[#1A3A53] mb-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User size={18} />
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#1A3A53] hover:bg-[#79B829] text-white transition-colors text-sm font-medium w-full"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Register
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
     );
   };
 

@@ -23,6 +23,11 @@ const deleteEvent = (eventId: number) => {
     return organizerApi.delete(`/events/${eventId}`);
 };
 
+// Fungsi API untuk menghapus artikel
+const deleteArticle = (articleId: number) => {
+    return organizerApi.delete(`/articles/${articleId}`);
+};
+
 // Fungsi API untuk mengirim email kontak
 const contactAdmin = async ({ subject, message }: { subject: string, message: string }) => {
     const { data } = await organizerApi.post('/contact', { subject, message });
@@ -49,6 +54,9 @@ const DashboardOrganizerPage: React.FC = () => {
 
   const [isDeleteEventModalOpen, setIsDeleteEventModalOpen] = useState(false);
   const [eventToDeleteId, setEventToDeleteId] = useState<number | null>(null);
+  
+  const [isDeleteArticleModalOpen, setIsDeleteArticleModalOpen] = useState(false);
+  const [articleToDeleteId, setArticleToDeleteId] = useState<number | null>(null);
   
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
@@ -106,6 +114,26 @@ const DashboardOrganizerPage: React.FC = () => {
           setIsDeleteEventModalOpen(false);
       }
   });
+
+  const deleteArticleMutation = useMutation({
+      mutationFn: deleteArticle,
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+          setIsDeleteArticleModalOpen(false);
+          setArticleToDeleteId(null);
+          if (viewingArticle) {
+              setViewingArticle(false);
+              setSelectedArticleId(null);
+          }
+          setModalMessage("Artikel berhasil dihapus.");
+          setIsSuccessModalOpen(true);
+      },
+      onError: (error: any) => {
+          setModalMessage(error.response?.data?.message || "Gagal menghapus artikel.");
+          setIsErrorModalOpen(true);
+          setIsDeleteArticleModalOpen(false);
+      }
+  });
   
   const contactMutation = useMutation({
       mutationFn: contactAdmin,
@@ -128,6 +156,17 @@ const DashboardOrganizerPage: React.FC = () => {
   const handleConfirmDeleteEvent = () => {
       if (eventToDeleteId) {
           deleteMutation.mutate(eventToDeleteId);
+      }
+  };
+
+  const handleOpenDeleteArticleModal = (id: number) => {
+      setArticleToDeleteId(id);
+      setIsDeleteArticleModalOpen(true);
+  };
+
+  const handleConfirmDeleteArticle = () => {
+      if (articleToDeleteId) {
+          deleteArticleMutation.mutate(articleToDeleteId);
       }
   };
 
@@ -179,6 +218,7 @@ const DashboardOrganizerPage: React.FC = () => {
                     setViewingArticle(true);
                 }}
                 onEditClick={handleOpenEditArticleModal}
+                onDeleteClick={handleOpenDeleteArticleModal}
             />
         );
       case 'Analitik':
@@ -189,6 +229,18 @@ const DashboardOrganizerPage: React.FC = () => {
         return <KelolaEventTab onViewClick={() => {}} onEditClick={() => {}} onDeleteClick={() => {}} />;
     }
   };
+
+  const handleSuccessModalClose = () => {
+    setIsSuccessModalOpen(false);
+    // Refetch semua data yang relevan
+    queryClient.invalidateQueries({ queryKey: ['myEvents'] });
+    queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+    queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['organizerProfileForTotalArtikel'] });
+    queryClient.invalidateQueries({ queryKey: ['organizerStats'] });
+    queryClient.invalidateQueries({ queryKey: ['eventStats'] });
+    queryClient.invalidateQueries({ queryKey: ['articleStats'] });
+};
 
   return (
     <>
@@ -228,7 +280,7 @@ const DashboardOrganizerPage: React.FC = () => {
 
       <SuccessModal
         isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={handleSuccessModalClose}
         title="Berhasil!"
         message={modalMessage}
         buttonText="Selesai"
@@ -249,6 +301,15 @@ const DashboardOrganizerPage: React.FC = () => {
         title="Konfirmasi Hapus Event"
         message="Apakah Anda yakin ingin menghapus event ini? Semua data pendaftaran terkait akan hilang."
         isConfirming={deleteMutation.isPending}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteArticleModalOpen}
+        onClose={() => setIsDeleteArticleModalOpen(false)}
+        onConfirm={handleConfirmDeleteArticle}
+        title="Konfirmasi Hapus Artikel"
+        message="Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan."
+        isConfirming={deleteArticleMutation.isPending}
       />
 
       <ContactAdminModal

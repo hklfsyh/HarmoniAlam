@@ -89,6 +89,7 @@ const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose, ar
       onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: [queryKeyToInvalidate] });
           queryClient.invalidateQueries({ queryKey: ['articleDetail', articleId] });
+          queryClient.invalidateQueries({ queryKey: ['myArticleDetail', articleId] });
           onSuccess();
       },
       onError: (error: any) => { alert(`Gagal memperbarui artikel: ${error.message}`); }

@@ -6,6 +6,7 @@ import organizerApi from '../API/organizer';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SuccessModal from '../components/SuccessModal';
+import ErrorModal from '../components/ErrorModal';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -24,10 +25,10 @@ const fetchEventCategories = async (): Promise<Category[]> => {
 
 // Fungsi untuk membuat event baru (POST request)
 const createEvent = async (formData: FormData) => {
-    const { data } = await organizerApi.post('/events', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
+  const { data } = await organizerApi.post('/events', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
 };
 
 // Custom marker icon supaya muncul di leaflet
@@ -67,12 +68,15 @@ const CreateEventPage: React.FC = () => {
     providedItems: '',
   });
   const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // State baru untuk preview
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [gallery, setGallery] = useState<(File | null)[]>([null]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
   // Ambil data kategori untuk dropdown
   const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
@@ -81,26 +85,27 @@ const CreateEventPage: React.FC = () => {
   });
 
   const mutation = useMutation({
-      mutationFn: createEvent,
-      onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['organizerEvents'] }); // Refresh daftar event di dashboard
-          setIsSuccessModalOpen(true);
-      },
-      onError: (error: any) => {
-          alert(`Gagal membuat event: ${error.response?.data?.message || error.message}`);
-      }
+    mutationFn: createEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organizerEvents'] });
+      setIsSuccessModalOpen(true);
+    },
+    onError: (error: any) => {
+      setErrorMessage(error.response?.data?.message || error.message || 'Gagal membuat event');
+      setIsErrorModalOpen(true);
+    }
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        setImage(file);
-        setImagePreview(URL.createObjectURL(file)); // Buat URL preview
-      }
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleGalleryChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,36 +137,59 @@ const CreateEventPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      const submissionData = new FormData();
-      
-      submissionData.append('title', formData.title);
-      submissionData.append('category_id', formData.category_id);
-      submissionData.append('maxParticipants', formData.maxParticipants);
-      submissionData.append('eventDate', formData.eventDate);
-      submissionData.append('eventTime', formData.eventTime);
-      submissionData.append('location', formData.location);
-      submissionData.append('description', formData.description);
-      submissionData.append('requiredItems', formData.requiredItems);
-      submissionData.append('providedItems', formData.providedItems);
-      submissionData.append('latitude', latitude);
-      submissionData.append('longitude', longitude);
-
-      if (image) {
-        submissionData.append('image', image);
-      }
-      // Tambahkan gallery files (hanya yang terisi)
-      gallery.forEach((file) => {
-        if (file) submissionData.append('gallery', file);
-      });
-      
-      mutation.mutate(submissionData);
+  // Validasi form
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    if (!formData.title.trim()) errors.title = "Judul event wajib diisi";
+    if (!formData.category_id) errors.category_id = "Kategori event wajib dipilih";
+    if (!formData.maxParticipants || Number(formData.maxParticipants) < 1) errors.maxParticipants = "Jumlah partisipan minimal 1";
+    if (!formData.eventDate) errors.eventDate = "Tanggal event wajib diisi";
+    if (!formData.eventTime) errors.eventTime = "Waktu event wajib diisi";
+    if (!formData.location.trim()) errors.location = "Lokasi event wajib diisi";
+    if (!formData.description.trim()) errors.description = "Deskripsi event wajib diisi";
+    if (!formData.requiredItems.trim()) errors.requiredItems = "Kebutuhan yang harus dibawa wajib diisi";
+    if (!formData.providedItems.trim()) errors.providedItems = "Kebutuhan yang disediakan wajib diisi";
+    if (!latitude || !longitude) errors.locationMap = "Lokasi map wajib dipilih";
+    if (!image) errors.image = "Gambar utama wajib diisi";
+    return errors;
   };
-  
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    const submissionData = new FormData();
+    submissionData.append('title', formData.title);
+    submissionData.append('category_id', formData.category_id);
+    submissionData.append('maxParticipants', formData.maxParticipants);
+    submissionData.append('eventDate', formData.eventDate);
+    submissionData.append('eventTime', formData.eventTime);
+    submissionData.append('location', formData.location);
+    submissionData.append('description', formData.description);
+    submissionData.append('requiredItems', formData.requiredItems);
+    submissionData.append('providedItems', formData.providedItems);
+    submissionData.append('latitude', latitude);
+    submissionData.append('longitude', longitude);
+
+    if (image) {
+      submissionData.append('image', image);
+    }
+    gallery.forEach((file) => {
+      if (file) submissionData.append('gallery', file);
+    });
+
+    mutation.mutate(submissionData);
+  };
+
   const handleModalClose = () => {
-      setIsSuccessModalOpen(false);
-      navigate('/organizer'); // Kembali ke dashboard organizer
+    setIsSuccessModalOpen(false);
+    navigate('/organizer');
+  };
+
+  const handleErrorModalClose = () => {
+    setIsErrorModalOpen(false);
   };
 
   return (
@@ -181,35 +209,68 @@ const CreateEventPage: React.FC = () => {
           <div className="bg-white p-8 md:p-10 rounded-xl shadow-lg w-full max-w-3xl mx-auto mt-8">
             <h2 className="text-2xl font-bold text-[#1A3A53] mb-8">Buat Event Baru</h2>
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div><label className="block text-sm font-semibold">Judul Event</label><input name="title" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/></div>
+              <div>
+                <label className="block text-sm font-semibold">Judul Event</label>
+                <input name="title" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                {formErrors.title && <p className="text-xs text-red-600 mt-1">{formErrors.title}</p>}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-semibold">Kategori Event</label>
-                    <select
-                      name="category_id"
-                      value={formData.category_id}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border rounded-lg bg-white"
-                    >
-                      <option value="" hidden>Pilih Kategori</option>
-                      {categories?.map(cat => (
-                        <option key={cat.category_id} value={cat.category_id}>
-                          {cat.categoryName}
-                        </option>
-                      ))}
-                    </select>
+                  <label className="block text-sm font-semibold">Kategori Event</label>
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border rounded-lg bg-white"
+                  >
+                    <option value="" hidden>Pilih Kategori</option>
+                    {categories?.map(cat => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.category_id && <p className="text-xs text-red-600 mt-1">{formErrors.category_id}</p>}
                 </div>
-                <div><label className="block text-sm font-semibold">Maksimal Partisipan</label><input name="maxParticipants" type="number" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/></div>
+                <div>
+                  <label className="block text-sm font-semibold">Maksimal Partisipan</label>
+                  <input name="maxParticipants" type="number" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  {formErrors.maxParticipants && <p className="text-xs text-red-600 mt-1">{formErrors.maxParticipants}</p>}
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div><label className="block text-sm font-semibold">Tanggal Event</label><input name="eventDate" type="date" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/></div>
-                <div><label className="block text-sm font-semibold">Waktu Event</label><input name="eventTime" type="time" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/></div>
+                <div>
+                  <label className="block text-sm font-semibold">Tanggal Event</label>
+                  <input name="eventDate" type="date" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  {formErrors.eventDate && <p className="text-xs text-red-600 mt-1">{formErrors.eventDate}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold">Waktu Event</label>
+                  <input name="eventTime" type="time" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  {formErrors.eventTime && <p className="text-xs text-red-600 mt-1">{formErrors.eventTime}</p>}
+                </div>
               </div>
-              <div><label className="block text-sm font-semibold">Lokasi Event</label><input name="location" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/></div>
-              <div><label className="block text-sm font-semibold">Deskripsi Event</label><textarea name="description" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/></div>
-              <div><label className="block text-sm font-semibold">Kebutuhan yang Harus Dibawa</label><textarea name="requiredItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/></div>
-              <div><label className="block text-sm font-semibold">Kebutuhan yang Disediakan</label><textarea name="providedItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/></div>
+              <div>
+                <label className="block text-sm font-semibold">Lokasi Event</label>
+                <input name="location" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                {formErrors.location && <p className="text-xs text-red-600 mt-1">{formErrors.location}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold">Deskripsi Event</label>
+                <textarea name="description" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                {formErrors.description && <p className="text-xs text-red-600 mt-1">{formErrors.description}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold">Kebutuhan yang Harus Dibawa</label>
+                <textarea name="requiredItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                {formErrors.requiredItems && <p className="text-xs text-red-600 mt-1">{formErrors.requiredItems}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold">Kebutuhan yang Disediakan</label>
+                <textarea name="providedItems" onChange={handleChange} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                {formErrors.providedItems && <p className="text-xs text-red-600 mt-1">{formErrors.providedItems}</p>}
+              </div>
               
               {/* --- UI UPLOAD GAMBAR DIPERBARUI --- */}
               <div>
@@ -224,6 +285,7 @@ const CreateEventPage: React.FC = () => {
                     <input id="file-upload" name="image" type="file" className="sr-only" onChange={handleFileChange} required accept="image/*" />
                   </label>
                 </div>
+                {formErrors.image && <p className="text-xs text-red-600 mt-1">{formErrors.image}</p>}
               </div>
 
               {/* --- UI UPLOAD GALERI GAMBAR --- */}
@@ -276,7 +338,7 @@ const CreateEventPage: React.FC = () => {
                 <label className="block text-sm font-semibold mb-2">Tandai Lokasi Event di Map</label>
                 <div className="mb-2">
                   <MapContainer
-                    center={[-6.2, 106.8]} // Default Jakarta
+                    center={[-6.2, 106.8]}
                     zoom={13}
                     style={{ height: '300px', width: '100%' }}
                     scrollWheelZoom={true}
@@ -297,13 +359,14 @@ const CreateEventPage: React.FC = () => {
                   <input type="text" name="latitude" value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" className="px-4 py-2 border rounded-lg" required />
                   <input type="text" name="longitude" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" className="px-4 py-2 border rounded-lg" required />
                 </div>
+                {formErrors.locationMap && <p className="text-xs text-red-600 mt-1">{formErrors.locationMap}</p>}
                 <p className="text-xs text-gray-500 mt-1">Klik pada map untuk memilih lokasi event. Latitude dan longitude akan terisi otomatis.</p>
               </div>
 
               <div className="flex justify-end gap-4 pt-4">
                 <button type="reset" className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Reset Form</button>
                 <button type="submit" disabled={mutation.isPending} className="px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
-                    {mutation.isPending ? 'Membuat Event...' : 'Buat Event'}
+                  {mutation.isPending ? 'Membuat Event...' : 'Buat Event'}
                 </button>
               </div>
             </form>
@@ -317,6 +380,12 @@ const CreateEventPage: React.FC = () => {
         title="Event Berhasil Dibuat!"
         message="Event baru Anda telah berhasil disimpan dan akan ditampilkan di halaman event."
         buttonText="Selesai"
+      />
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={handleErrorModalClose}
+        title="Gagal Membuat Event"
+        message={errorMessage}
       />
     </>
   );

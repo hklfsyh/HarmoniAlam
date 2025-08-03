@@ -132,7 +132,7 @@ const StatsGrid: React.FC = () => {
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             {statCardsData.map(stat => <StatCard key={stat.title} {...stat} />)}
         </div>
     );

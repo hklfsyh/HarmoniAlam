@@ -1,6 +1,6 @@
 // src/components/ConfirmationModal.tsx
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, CheckCircle } from 'lucide-react';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   isConfirming?: boolean;
+  variant?: 'warning' | 'confirm'; // Tambah variant prop
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
@@ -22,8 +23,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmText = "Hapus",
   cancelText = "Batal",
   isConfirming = false,
+  variant = 'warning', // Default ke warning untuk backward compatibility
 }) => {
   if (!isOpen) return null;
+
+  // Tentukan style berdasarkan variant
+  const isWarning = variant === 'warning';
+  const iconColor = isWarning ? 'text-red-500' : 'text-blue-500';
+  const buttonColor = isWarning 
+    ? 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400'
+    : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400';
+  const defaultConfirmingText = isWarning ? 'Menghapus...' : 'Memproses...';
 
   return (
     <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
@@ -31,7 +41,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
           <X size={24} />
         </button>
-        <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
+        {isWarning ? (
+          <AlertTriangle size={48} className={`mx-auto ${iconColor} mb-4`} />
+        ) : (
+          <CheckCircle size={48} className={`mx-auto ${iconColor} mb-4`} />
+        )}
         <h2 className="text-2xl font-normal text-[#1A3A53] mb-2">{title}</h2>
         <p className="text-gray-600 mb-6 font-light">{message}</p>
         <div className="flex justify-center gap-4">
@@ -45,9 +59,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={isConfirming}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg font-normal hover:bg-red-700 disabled:bg-red-400"
+            className={`px-6 py-2 rounded-lg font-normal ${buttonColor}`}
           >
-            {isConfirming ? 'Menghapus...' : confirmText}
+            {isConfirming ? defaultConfirmingText : confirmText}
           </button>
         </div>
       </div>

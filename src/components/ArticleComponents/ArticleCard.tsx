@@ -54,12 +54,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
     typeof article.authorId === 'number' &&
     profile.author_id === article.authorId;
 
-  // Debug log
-  console.log('profile.author_id:', profile?.author_id, 'article.authorId:', article.authorId, 'isOwnArticle:', isOwnArticle);
-
-  // Print authorId setiap render card
-  console.log('ArticleCard authorId:', article.authorId);
-
   // Bookmark logic
   const { data: bookmarkedArticleIds, refetch: refetchBookmark } = useQuery({
     queryKey: ['bookmarkedArticles'],
@@ -81,14 +75,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transform transition-transform duration-300 hover:-translate-y-2">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl h-full">
       <div className="relative">
         {/* ICON BOOKMARK DI POJOK KIRI ATAS */}
         {!isOwnArticle && (
-          <div className="absolute top-4 left-4 z-10">
+          <div className="absolute top-3 left-3 z-10">
             <button
               type="button"
-              className={`rounded-full p-2 shadow transition ${
+              className={`rounded-full p-1.5 sm:p-2 shadow transition ${
                 isBookmarked
                   ? 'bg-[#79B829]'
                   : 'bg-white/80 hover:bg-[#79B829]/80'
@@ -108,7 +102,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
               {/* SVG Bookmark */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`h-6 w-6 ${isBookmarked ? 'text-white' : 'text-[#79B829]'}`}
+                className={`h-4 w-4 sm:h-5 sm:w-5 ${isBookmarked ? 'text-white' : 'text-[#79B829]'}`}
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -117,20 +111,41 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
             </button>
           </div>
         )}
-        <img src={article.image} alt={article.title} className="w-full h-56 object-cover" />
-        <div className="absolute top-4 right-4 bg-[#79B829] bg-opacity-80 text-white px-3 py-1 rounded-full text-sm font-normals">
+        
+        <img src={article.image} alt={article.title} className="w-full h-40 sm:h-48 lg:h-56 object-cover" />
+        
+        <div className="absolute top-3 right-3 bg-[#79B829] bg-opacity-90 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-normal">
           {article.category.categoryName}
         </div>
       </div>
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-normal text-[#1A3A53]">{article.title}</h3>
-        <p className="mt-2 text-gray-600 flex-grow text-sm font-light">{article.summary}</p>
-        <div className="flex justify-between items-center mt-4 text-xs text-gray-500 font-light">
-          <div className="flex items-center gap-2"><User className="h-4 w-4" /><span>{article.authorName}</span></div>
-          <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{new Date(article.createdAt).toLocaleDateString('id-ID')}</span></div>
+      
+      <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-grow">
+        <h3 className="text-lg sm:text-xl font-normal text-[#1A3A53] mb-2 line-clamp-2">
+          {article.title}
+        </h3>
+        
+        <p className="text-gray-600 flex-grow text-sm sm:text-base font-light mb-4 line-clamp-3">
+          {article.summary}
+        </p>
+        
+        {/* Author & Date Info */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mt-auto text-xs sm:text-sm text-gray-500 font-light">
+          <div className="flex items-center gap-2">
+            <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate">{article.authorName}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span>{new Date(article.createdAt).toLocaleDateString('id-ID')}</span>
+          </div>
         </div>
+        
+        {/* Read More Button */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <Link to={`/artikel/detail/${article.article_id}`} className="text-center block text-[#79B829] font-normal hover:underline">
+          <Link 
+            to={`/artikel/detail/${article.article_id}`} 
+            className="block text-center bg-[#79B829] text-white py-2 px-4 rounded-lg font-normal hover:bg-opacity-90 transition-colors text-sm sm:text-base"
+          >
             Baca Selengkapnya
           </Link>
         </div>

@@ -351,6 +351,18 @@ const DashboardAdminPage: React.FC = () => {
     </div>
   );
 
+  // Fungsi untuk menutup SuccessModal dan refetch semua data utama
+  const handleCloseSuccessModal = () => {
+    setIsSuccessModalOpen(false);
+    // Refetch semua query utama
+    queryClient.invalidateQueries({ queryKey: ['allArticles'] });
+    queryClient.invalidateQueries({ queryKey: ['allEvents'] });
+    queryClient.invalidateQueries({ queryKey: ['volunteers'] });
+    queryClient.invalidateQueries({ queryKey: ['organizers'] });
+    queryClient.invalidateQueries({ queryKey: ['organizerSubmissions'] });
+    queryClient.invalidateQueries({ queryKey: ['adminStats'] }); // Tambahkan ini
+  };
+
   return (
     <>
       <div className="bg-slate-100 min-h-screen">
@@ -366,7 +378,7 @@ const DashboardAdminPage: React.FC = () => {
 
       <SuccessModal
         isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={handleCloseSuccessModal}
         title="Berhasil!"
         message={successMessage}
         buttonText="Selesai"

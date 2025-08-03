@@ -29,6 +29,11 @@ const cancelRegistration = (eventId: number) => {
     return volunteerApi.delete(`/events/${eventId}/register`);
 };
 
+// Fungsi untuk mendaftar event
+const registerForEvent = (eventId: number) => {
+    return volunteerApi.post(`/events/${eventId}/register`);
+};
+
 const EventsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = React.useState(false);
@@ -40,6 +45,8 @@ const EventsPage: React.FC = () => {
 
   // State baru untuk mengelola modal konfirmasi pembatalan
   const [eventToCancel, setEventToCancel] = React.useState<Event | null>(null);
+  // State untuk mengelola modal konfirmasi pendaftaran
+  const [eventToRegister, setEventToRegister] = React.useState<Event | null>(null);
 
   const handleRegistrationSuccess = (message: string) => {
     setModalMessage(message);
@@ -51,9 +58,14 @@ const EventsPage: React.FC = () => {
     setIsErrorModalOpen(true);
   };
 
-  // Fungsi untuk membuka modal konfirmasi
+  // Fungsi untuk membuka modal konfirmasi cancel
   const handleOpenCancelModal = (event: Event) => {
     setEventToCancel(event);
+  };
+
+  // Fungsi untuk membuka modal konfirmasi register
+  const handleOpenRegisterModal = (event: Event) => {
+    setEventToRegister(event);
   };
 
   // Mutasi untuk pembatalan event
@@ -69,10 +81,30 @@ const EventsPage: React.FC = () => {
       }
   });
 
+  // Mutasi untuk pendaftaran event
+  const registerMutation = useMutation({
+      mutationFn: registerForEvent,
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['publicEvents'] });
+          queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
+          handleRegistrationSuccess('Pendaftaran berhasil! Terima kasih atas partisipasi Anda.');
+      },
+      onError: (error: ApiError) => {
+          handleRegistrationFailure(error.response?.data?.message || 'Terjadi kesalahan saat mendaftar.');
+      }
+  });
+
   const handleConfirmCancel = () => {
     if (eventToCancel) {
         cancelMutation.mutate(eventToCancel.event_id);
         setEventToCancel(null); // Tutup modal setelah konfirmasi
+    }
+  };
+
+  const handleConfirmRegister = () => {
+    if (eventToRegister) {
+        registerMutation.mutate(eventToRegister.event_id);
+        setEventToRegister(null); // Tutup modal setelah konfirmasi
     }
   };
 
@@ -88,9 +120,10 @@ const EventsPage: React.FC = () => {
           <EventList 
             searchTerm={searchTerm}
             selectedCategory={selectedCategory}
-            onSuccess={handleRegistrationSuccess}
             onFailure={handleRegistrationFailure}
             onCancelClick={handleOpenCancelModal} // Kirim fungsi ke EventList
+            onRegisterClick={handleOpenRegisterModal} // Kirim fungsi register ke EventList
+            isRegistering={registerMutation.isPending} // Status loading
           />
         </main>
       </div>
@@ -111,7 +144,7 @@ const EventsPage: React.FC = () => {
         buttonText="Coba Lagi"
       />
 
-      {/* Satu Modal Konfirmasi untuk Seluruh Halaman */}
+      {/* Modal Konfirmasi untuk Pembatalan */}
       <ConfirmationModal
           isOpen={!!eventToCancel}
           onClose={() => setEventToCancel(null)}
@@ -121,6 +154,19 @@ const EventsPage: React.FC = () => {
           confirmText="Ya, Batalkan"
           cancelText="Tidak"
           isConfirming={cancelMutation.isPending}
+      />
+
+      {/* Modal Konfirmasi untuk Pendaftaran */}
+      <ConfirmationModal
+          isOpen={!!eventToRegister}
+          onClose={() => setEventToRegister(null)}
+          onConfirm={handleConfirmRegister}
+          title="Konfirmasi Pendaftaran"
+          message={`Apakah Anda yakin ingin mendaftar untuk event "${eventToRegister?.title}"?`}
+          confirmText="Ya, Daftar"
+          cancelText="Batal"
+          isConfirming={registerMutation.isPending}
+          variant="confirm"
       />
     </>
   );

@@ -63,7 +63,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onPermissionDenied, o
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={onContactAdminClick}
           className="flex items-center gap-2 bg-orange-500 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-opacity-90"

@@ -27,7 +27,7 @@ const contactAdmin = async ({ subject, message }: { subject: string, message: st
 };
 
 const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, requireLogin, resetIdleTimer } = useAuth(); // Tambahkan resetIdleTimer
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -88,8 +88,13 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    queryClient.clear(); // Hapus semua cache saat logout
+    queryClient.clear();
     navigate('/');
+  };
+
+  // Reset timer saat ada interaksi dengan navbar
+  const handleNavInteraction = () => {
+    resetIdleTimer();
   };
 
   const handleConfirmContact = (subject: string, message: string) => {
@@ -146,9 +151,9 @@ const Navbar: React.FC = () => {
                     <User className="text-slate-400" size={28} />
                   </div>
                 )}
-                <div className="max-w-[160px] break-words">
-                  <div className="font-semibold text-[#1A3A53] text-lg">{profile?.firstName} {profile?.lastName}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1 break-words">
+                <div className="flex flex-col max-w-[160px]">
+                  <div className="font-semibold text-[#1A3A53] text-lg break-words truncate">{profile?.firstName} {profile?.lastName}</div>
+                  <div className="text-xs text-gray-500 flex items-center gap-1 break-words truncate mt-1">
                     <Mail size={14} /> {profile?.email}
                   </div>
                 </div>
@@ -216,7 +221,10 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className={`w-full fixed top-0 left-0 z-50 shadow-md transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md' : 'bg-white'}`}>
+      <nav 
+        className={`w-full fixed top-0 left-0 z-50 shadow-md transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md' : 'bg-white'}`}
+        onMouseEnter={handleNavInteraction} // Reset timer saat hover navbar
+      >
         <div className="container mx-auto px-6 flex justify-between items-center h-16">
           {/* BAGIAN KIRI: Logo */}
           <div className="flex-shrink-0">

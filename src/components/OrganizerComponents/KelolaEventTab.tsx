@@ -30,6 +30,7 @@ const fetchOrganizerProfile = async (): Promise<OrganizerProfile> => {
     const { data } = await organizerApi.get<OrganizerProfile>('/organizer/profile');
     return data;
 };
+
 const formatTime = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -38,15 +39,14 @@ const formatTime = (isoString: string) => {
 interface KelolaEventTabProps {
     onViewClick: (id: number) => void;
     onEditClick: (id: number) => void;
-    onDeleteClick: (id: number) => void; // Prop baru
+    onDeleteClick: (id: number) => void;
 }
-
-
-
 
 const KelolaEventTab: React.FC<KelolaEventTabProps> = ({ onViewClick, onEditClick, onDeleteClick }) => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     // Debounce search input
     useEffect(() => {
@@ -68,6 +68,8 @@ const KelolaEventTab: React.FC<KelolaEventTabProps> = ({ onViewClick, onEditClic
         queryFn: () => fetchMyEvents(debouncedSearch),
         enabled: !!profile && profile.status?.toLowerCase() === 'approved',
     });
+
+    const paginatedEvents = events.slice((page - 1) * pageSize, page * pageSize);
 
     if (loadingProfile) {
         return <p className="p-4 text-center">Memuat data...</p>;
@@ -100,51 +102,141 @@ const KelolaEventTab: React.FC<KelolaEventTabProps> = ({ onViewClick, onEditClic
             {isLoading && <p>Memuat data event...</p>}
             {isError && <p className="text-red-500">Terjadi kesalahan: {error.message}</p>}
 
-            <div className="border rounded-lg text-sm overflow-hidden">
-                <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
-                    <div className="col-span-4">Event</div>
-                    <div className="col-span-2">Tanggal & Waktu</div>
-                    <div className="col-span-2">Lokasi</div>
-                    <div className="col-span-1 text-center">Partisipan</div>
-                    <div className="col-span-1 text-center">Status</div>
-                    <div className="col-span-2 text-right">Aksi</div>
-                </div>
-                <div className="divide-y divide-gray-100">
-                    {Array.isArray(events) && events.length > 0 ? (
-                        events.map((event) => (
-                            <div key={event.event_id} className="grid grid-cols-12 gap-4 px-4 py-3 items-center">
-                                <div className="col-span-4 font-bold text-[#1A3A53]">{event.title}</div>
-                                <div className="col-span-2 text-gray-500 flex items-center gap-2">
-                                    <Calendar size={16} />
-                                    <div>
-                                        {new Date(event.eventDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
-                                        <p className="text-xs">{formatTime(event.eventTime)} WIB</p>
+            {/* Container dengan overflow scroll untuk responsivitas */}
+            <div className="w-full overflow-x-auto">
+                <div className="border rounded-lg text-sm min-w-[1000px]">
+                    {/* Header tabel dengan gap yang responsif */}
+                    <div className="grid grid-cols-12 gap-x-3 sm:gap-x-4 md:gap-x-5 lg:gap-x-6 xl:gap-x-8 px-4 sm:px-5 py-3 bg-[#1A3A53] text-white font-semibold uppercase tracking-wider text-xs">
+                        <div className="col-span-3">Event</div>
+                        <div className="col-span-2">Tanggal & Waktu</div>
+                        <div className="col-span-2">Lokasi</div>
+                        <div className="col-span-1 text-center">Partisipan</div>
+                        <div className="col-span-1 text-center">Status</div>
+                        <div className="col-span-3 text-right">Aksi</div>
+                    </div>
+                    
+                    {/* Body tabel */}
+                    <div className="divide-y divide-gray-100">
+                        {Array.isArray(paginatedEvents) && paginatedEvents.length > 0 ? (
+                            paginatedEvents.map((event) => (
+                                <div key={event.event_id} className="grid grid-cols-12 gap-x-3 sm:gap-x-4 md:gap-x-5 lg:gap-x-6 xl:gap-x-8 px-4 sm:px-5 py-3 items-center hover:bg-gray-50 transition-colors">
+                                    {/* Event Name */}
+                                    <div className="col-span-3 font-bold text-[#1A3A53] break-words">
+                                        <div className="line-clamp-2">{event.title}</div>
+                                    </div>
+                                    
+                                    {/* Date & Time */}
+                                    <div className="col-span-2 text-gray-500">
+                                        <div className="flex items-start gap-1 sm:gap-2">
+                                            <Calendar size={14} className="flex-shrink-0 mt-0.5" />
+                                            <div className="text-xs sm:text-sm">
+                                                <div className="font-medium">
+                                                    {new Date(event.eventDate).toLocaleDateString('id-ID', { 
+                                                        day: '2-digit', 
+                                                        month: 'short', 
+                                                        year: 'numeric' 
+                                                    })}
+                                                </div>
+                                                <div className="text-xs text-gray-400">
+                                                    {formatTime(event.eventTime)} WIB
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Location */}
+                                    <div className="col-span-2 text-gray-500">
+                                        <div className="flex items-start gap-1 sm:gap-2">
+                                            <MapPin size={14} className="flex-shrink-0 mt-0.5" />
+                                            <span className="text-xs sm:text-sm line-clamp-2 break-words">
+                                                {event.location}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Participants */}
+                                    <div className="col-span-1 font-medium text-center text-xs sm:text-sm">
+                                        <div className="bg-gray-100 rounded-full px-2 py-1">
+                                            {event.currentParticipants}/{event.maxParticipants}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Status */}
+                                    <div className="col-span-1 text-center">
+                                        <span className={`text-xs font-semibold px-2 sm:px-3 py-1 rounded-full whitespace-nowrap ${
+                                            event.status === 'upcoming' 
+                                                ? 'bg-blue-100 text-blue-700' 
+                                                : 'bg-green-100 text-green-700'
+                                        }`}>
+                                            {event.status}
+                                        </span>
+                                    </div>
+                                    
+                                    {/* Actions */}
+                                    <div className="col-span-3 flex items-center justify-end gap-1 sm:gap-2 text-gray-500">
+                                        <button 
+                                            onClick={() => onViewClick(event.event_id)} 
+                                            className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"
+                                            title="Lihat detail"
+                                        >
+                                            <Eye size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => onEditClick(event.event_id)} 
+                                            className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 hover:text-green-600 transition-colors"
+                                            title="Edit event"
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => onDeleteClick(event.event_id)} 
+                                            className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"
+                                            title="Hapus event"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="col-span-2 text-gray-500 flex items-start gap-2">
-                                    <MapPin size={16} className="flex-shrink-0 mt-0.5" />
-                                    <span>{event.location}</span>
-                                </div>
-                                <div className="col-span-1 font-medium text-center">{event.currentParticipants}/{event.maxParticipants}</div>
-                                <div className="col-span-1 text-center">
-                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${event.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                                        }`}>
-                                        {event.status}
-                                    </span>
-                                </div>
-                                <div className="col-span-2 flex items-center justify-end gap-2 text-gray-500">
-                                    <button onClick={() => onViewClick(event.event_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
-                                    <button onClick={() => onEditClick(event.event_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-green-600 transition-colors"><Pencil size={18} /></button>
-                                    <button onClick={() => onDeleteClick(event.event_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-gray-500 col-span-full">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="text-4xl">📅</div>
+                                    <div>Belum ada event yang dibuat.</div>
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-8 text-gray-500">Belum ada event yang dibuat.</div>
-                    )}
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-between sm:justify-end items-center gap-2 mt-4">
+                <div className="text-sm text-gray-500 sm:hidden">
+                    Halaman {page} dari {Math.ceil(events.length / pageSize) || 1}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="px-3 py-1 rounded bg-slate-100 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors text-sm"
+                        disabled={page === 1}
+                        onClick={() => setPage(page - 1)}
+                    >
+                        Prev
+                    </button>
+                    <span className="text-sm font-semibold px-2 hidden sm:inline">
+                        {page} / {Math.ceil(events.length / pageSize) || 1}
+                    </span>
+                    <button
+                        className="px-3 py-1 rounded bg-slate-100 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors text-sm"
+                        disabled={page * pageSize >= events.length}
+                        onClick={() => setPage(page + 1)}
+                    >
+                        Next
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
+
 export default KelolaEventTab;

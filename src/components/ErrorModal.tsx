@@ -19,8 +19,8 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center relative">
+    <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-[9999] p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center relative z-[10000]">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
           <X size={24} />
         </button>

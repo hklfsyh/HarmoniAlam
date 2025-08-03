@@ -40,6 +40,40 @@ const ProfilePage: React.FC = () => {
     setIsSuccessModalOpen(true);
   };
 
+  // Handler untuk menutup success modal dan refetch data
+  const handleSuccessModalClose = () => {
+    setIsSuccessModalOpen(false);
+    // Refetch semua data yang mungkin telah berubah
+    queryClient.invalidateQueries({ queryKey: ['volunteerProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+    queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
+    // Refetch detail artikel jika sedang dilihat
+    queryClient.invalidateQueries({ queryKey: ['myArticleDetail'] });
+  };
+
+  // Handler untuk success dari ProfileContent (misalnya cancel registration)
+  const handleProfileContentSuccess = (message: string) => {
+    setModalMessage(message);
+    setIsSuccessModalOpen(true);
+  };
+
+  // Handler untuk failure dari ProfileContent
+  const handleProfileContentFailure = (message: string) => {
+    setModalMessage(message);
+    setIsErrorModalOpen(true);
+  };
+
+  // Handler untuk menutup error modal dan refetch data
+  const handleErrorModalClose = () => {
+    setIsErrorModalOpen(false);
+    // Refetch data untuk memastikan konsistensi
+    queryClient.invalidateQueries({ queryKey: ['volunteerProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+    queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
+    // Refetch detail artikel jika sedang dilihat
+    queryClient.invalidateQueries({ queryKey: ['myArticleDetail'] });
+  };
+
   const handleFailure = (message: string) => {
     setIsEditProfileModalOpen(false);
     setIsEditArticleModalOpen(false);
@@ -95,6 +129,8 @@ const ProfilePage: React.FC = () => {
                 setActiveTab={setActiveTab}
                 onEditArticle={handleOpenEditArticle}
                 onDeleteArticle={handleOpenDeleteModal}
+                onSuccess={handleProfileContentSuccess}
+                onFailure={handleProfileContentFailure}
               />
             </div>
           </div>
@@ -119,7 +155,7 @@ const ProfilePage: React.FC = () => {
 
       <SuccessModal
         isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={handleSuccessModalClose}
         title="Berhasil!"
         message={modalMessage}
         buttonText="Selesai"
@@ -127,7 +163,7 @@ const ProfilePage: React.FC = () => {
 
       <ErrorModal
         isOpen={isErrorModalOpen}
-        onClose={() => setIsErrorModalOpen(false)}
+        onClose={handleErrorModalClose}
         title="Update Gagal"
         message={modalMessage}
         buttonText="Coba Lagi"

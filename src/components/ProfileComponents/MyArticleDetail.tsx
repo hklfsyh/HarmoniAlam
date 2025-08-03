@@ -28,7 +28,14 @@ const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack, on
     if (isLoading) return <p className="text-center p-4">Memuat detail artikel...</p>;
     if (isError) return <p className="text-center p-4 text-red-500">Gagal memuat artikel: {error.message}</p>;
 
-    const gallery = Array.isArray(article.gallery) ? article.gallery : [];
+    // Proses gallery data - bisa berupa string array atau object array dengan property url
+    const gallery = Array.isArray(article.gallery) 
+        ? article.gallery.map((img: any) => typeof img === 'string' ? img : img.url)
+        : [];
+
+    // Debug: log gallery data to console
+    console.log('Article gallery data:', article.gallery);
+    console.log('Processed gallery:', gallery);
 
     const prevGallery = () => setGalleryIdx((prev) => (prev === 0 ? gallery.length - 1 : prev - 1));
     const nextGallery = () => setGalleryIdx((prev) => (prev === gallery.length - 1 ? 0 : prev + 1));
@@ -82,6 +89,9 @@ const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack, on
                                 alt={`Galeri Artikel ${galleryIdx + 1}`}
                                 className="w-full h-80 object-cover transition-all duration-300"
                                 loading="lazy"
+                                onError={(e) => {
+                                    e.currentTarget.src = "/no-image.png";
+                                }}
                             />
                         </div>
                         {gallery.length > 1 && (
@@ -106,9 +116,9 @@ const MyArticleDetail: React.FC<MyArticleDetailProps> = ({ articleId, onBack, on
                             </div>
                         )}
                         <div className="flex gap-2 mt-3 justify-center">
-                            {gallery.map((_, idx) => (
+                            {gallery.map((_: string, idx: number) => (
                                 <button
-                                    key={idx}
+                                    key={`gallery-dot-${idx}`}
                                     onClick={() => setGalleryIdx(idx)}
                                     className={`w-3 h-3 rounded-full transition-all border ${galleryIdx === idx ? "bg-[#79B829] border-[#79B829]" : "bg-gray-300 border-gray-300"}`}
                                     aria-label={`Pilih gambar ${idx + 1}`}

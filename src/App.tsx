@@ -1,9 +1,11 @@
 // src/App.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout'; // 1. Impor Layout
+import ScrollToTop from './components/ScrollToTop';
+import { useAuth } from './context/AuthContext';
 
 // Import semua halaman
 import HomePage from './pages/Home';
@@ -29,8 +31,34 @@ import BookmarkPage from './pages/BookmarkPage';
 
 
 const App: React.FC = () => {
+  const { user, resetIdleTimer } = useAuth();
+
+  useEffect(() => {
+    // Event listeners untuk reset idle timer pada aktivitas user
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    const handleUserActivity = () => {
+      if (user) {
+        resetIdleTimer();
+      }
+    };
+
+    // Tambahkan event listeners
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, true);
+    });
+
+    // Cleanup event listeners
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity, true);
+      });
+    };
+  }, [user, resetIdleTimer]);
+
   return (
     <>
+      <ScrollToTop /> {/* Tambahkan ini */}
       <Routes>
         {/* 2. Bungkus semua rute dengan Layout */}
         <Route element={<Layout />}>

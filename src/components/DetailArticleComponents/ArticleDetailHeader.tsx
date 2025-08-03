@@ -48,7 +48,14 @@ const ArticleDetailHeader: React.FC<{ article: any }> = ({ article }) => {
   });
 
   // Jangan tampilkan icon bookmark jika artikel milik volunteer yang login
-  const isOwnArticle = profile?.author_id === article?.authorId;
+  const isOwnArticle =
+    profile &&
+    typeof profile.author_id === 'number' &&
+    typeof article.author_id === 'number' &&
+    profile.author_id === article.author_id;
+
+  // Debug log (optional, untuk cek)
+  console.log('profile.author_id:', profile?.author_id, 'article.author_id:', article.author_id, 'isOwnArticle:', isOwnArticle);
 
   if (!article) return null;
   return (

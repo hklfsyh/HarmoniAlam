@@ -54,6 +54,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
     typeof article.authorId === 'number' &&
     profile.author_id === article.authorId;
 
+  // Debug log
+  console.log('profile.author_id:', profile?.author_id, 'article.authorId:', article.authorId, 'isOwnArticle:', isOwnArticle);
+
+  // Print authorId setiap render card
+  console.log('ArticleCard authorId:', article.authorId);
+
   // Bookmark logic
   const { data: bookmarkedArticleIds, refetch: refetchBookmark } = useQuery({
     queryKey: ['bookmarkedArticles'],

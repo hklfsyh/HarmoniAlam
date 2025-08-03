@@ -9,14 +9,18 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+  const { user, token, isLoading } = useAuth();
+
+  // Tunggu sampai AuthContext selesai memuat user dari localStorage
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
   
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Jika role tidak diizinkan, redirect ke halaman utama atau halaman error
     return <Navigate to="/" replace />;
   }
 

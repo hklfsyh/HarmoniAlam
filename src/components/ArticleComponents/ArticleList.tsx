@@ -27,7 +27,11 @@ const fetchArticles = async (searchTerm: string, categoryId: number | null): Pro
     params.append('category', String(categoryId));
   }
   const { data } = await publicApi.get(`/articles?${params.toString()}`);
-  return data as Article[];
+  // Map author_id ke authorId agar ArticleCard dapat field yang benar
+  return data.map((item: any) => ({
+    ...item,
+    authorId: item.author_id, // tambahkan ini!
+  })) as Article[];
 };
 
 interface ArticleListProps {

@@ -146,9 +146,11 @@ const Navbar: React.FC = () => {
                     <User className="text-slate-400" size={28} />
                   </div>
                 )}
-                <div>
+                <div className="max-w-[160px] break-words">
                   <div className="font-semibold text-[#1A3A53] text-lg">{profile?.firstName} {profile?.lastName}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1"><Mail size={14} /> {profile?.email}</div>
+                  <div className="text-xs text-gray-500 flex items-center gap-1 break-words">
+                    <Mail size={14} /> {profile?.email}
+                  </div>
                 </div>
               </div>
               <div className="py-2 px-2">
@@ -209,21 +211,20 @@ const Navbar: React.FC = () => {
   };
 
   let logoLink = '/';
-  if (user?.role === 'admin') logoLink = '/admin/dashboard';
-  else if (user?.role === 'organizer') logoLink = '/dashboard';
+  if (user?.role === 'admin') logoLink = '/admin';
+  else if (user?.role === 'organizer') logoLink = '/organizer';
 
   return (
     <>
       <nav className={`w-full fixed top-0 left-0 z-50 shadow-md transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md' : 'bg-white'}`}>
-        <div className="container mx-auto px-6 flex justify-between items-center h-16"> {/* Menggunakan tinggi standar h-16 */}
-          
+        <div className="container mx-auto px-6 flex justify-between items-center h-16">
           {/* BAGIAN KIRI: Logo */}
-          <div className="flex-shrink-0"> {/* Mencegah logo menyusut */}
+          <div className="flex-shrink-0">
             <Link to={logoLink}>
               <img
                 src="/Logo_HarmoniAlam.png"
                 alt="Logo"
-                className="h-14 w-auto" // Tinggi spesifik, lebar otomatis. Ini memperbaiki logo gepeng.
+                className="h-14 w-auto"
               />
             </Link>
           </div>

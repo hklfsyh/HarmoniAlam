@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, Pencil, Trash2, Search, Calendar } from 'lucide-react';
 import organizerApi from '../../API/organizer';
+import ConfirmationModal from '../ConfirmationModal';
+import SuccessModal from '../SuccessModal';
+import ErrorModal from '../ErrorModal';
 
 
 // Tipe data untuk profil organizer
@@ -52,13 +55,22 @@ interface TotalArtikelTabProps {
     onEditClick: (id: number) => void;
 }
 
-
+// Fungsi API untuk hapus artikel
+const deleteArticle = async (articleId: number) => {
+    await organizerApi.delete(`/articles/${articleId}`);
+};
 
 const TotalArtikelTab: React.FC<TotalArtikelTabProps> = ({ onViewClick, onEditClick }) => {
 
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const queryClient = useQueryClient();
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [articleToDeleteId, setArticleToDeleteId] = useState<number | null>(null);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     // Debounce search input
     useEffect(() => {
@@ -81,6 +93,33 @@ const TotalArtikelTab: React.FC<TotalArtikelTabProps> = ({ onViewClick, onEditCl
         queryFn: () => fetchMyArticles(debouncedSearch, status),
         enabled: !!profile && profile.status?.toLowerCase() === 'approved',
     });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteArticle,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['myArticles'] });
+            setIsDeleteModalOpen(false);
+            setArticleToDeleteId(null);
+            setModalMessage("Artikel berhasil dihapus.");
+            setIsSuccessModalOpen(true);
+        },
+        onError: (error: any) => {
+            setIsDeleteModalOpen(false);
+            setModalMessage(error.response?.data?.message || "Gagal menghapus artikel.");
+            setIsErrorModalOpen(true);
+        }
+    });
+
+    const handleOpenDeleteModal = (id: number) => {
+        setArticleToDeleteId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (articleToDeleteId) {
+            deleteMutation.mutate(articleToDeleteId);
+        }
+    };
 
     if (loadingProfile) {
         return <p className="p-4 text-center">Memuat data...</p>;
@@ -155,7 +194,12 @@ const TotalArtikelTab: React.FC<TotalArtikelTabProps> = ({ onViewClick, onEditCl
                                 <div className="col-span-1 flex items-center justify-end gap-2 text-gray-500">
                                     <button onClick={() => onViewClick(article.article_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
                                     <button onClick={() => onEditClick(article.article_id)} className="p-1.5 rounded-md hover:bg-slate-100 hover:text-green-600 transition-colors"><Pencil size={18} /></button>
-                                    <button className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
+                                    <button
+                                        className="p-1.5 rounded-md hover:bg-slate-100 hover:text-red-600 transition-colors"
+                                        onClick={() => handleOpenDeleteModal(article.article_id)}
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             </div>
                         ))
@@ -164,6 +208,30 @@ const TotalArtikelTab: React.FC<TotalArtikelTabProps> = ({ onViewClick, onEditCl
                     )}
                 </div>
             </div>
+
+            {/* MODALS */}
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Konfirmasi Hapus Artikel"
+                message="Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan."
+                isConfirming={deleteMutation.isPending}
+            />
+            <SuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                title="Berhasil!"
+                message={modalMessage}
+                buttonText="Selesai"
+            />
+            <ErrorModal
+                isOpen={isErrorModalOpen}
+                onClose={() => setIsErrorModalOpen(false)}
+                title="Gagal Menghapus"
+                message={modalMessage}
+                buttonText="Coba Lagi"
+            />
         </div>
     );
 };

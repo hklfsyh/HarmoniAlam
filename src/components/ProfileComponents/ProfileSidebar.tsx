@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { User, Calendar, MapPin, Camera } from 'lucide-react';
+import {  Calendar,  Camera } from 'lucide-react';
 import volunteerApi from '../../API/volunteer';
 
 // Fungsi untuk mengambil data profil dari API
@@ -43,7 +43,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onEditClick }) => {
                 </div>
             )}
             <h2 className="text-2xl font-bold text-[#1A3A53]">{profile.firstName} {profile.lastName}</h2>
-            <p className="text-gray-600">{profile.email}</p>
+            <p className="text-gray-600 break-words max-w-full">{profile.email}</p>
             <div className="text-left mt-6 space-y-3 text-sm text-gray-500">
                 <div className="flex items-center gap-3">
                     <Calendar className="h-5 w-5" />

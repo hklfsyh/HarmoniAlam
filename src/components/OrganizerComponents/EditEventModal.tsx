@@ -244,47 +244,73 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-[#1A3A53] mb-6">Edit Event</h2>
+    <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 p-2 sm:p-4" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+      <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#1A3A53] mb-4 sm:mb-6">Edit Event</h2>
         {isLoading ? <p>Memuat data event...</p> : (
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div><label className="block text-sm font-semibold">Judul Event</label><input name="title" value={formData.title} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div><label className="block text-sm font-semibold">Kategori</label>
-                <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg bg-white" disabled={isLoadingCategories}>
+          <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Judul Event</label>
+              <input name="title" value={formData.title} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Kategori</label>
+                <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg bg-white text-sm sm:text-base" disabled={isLoadingCategories}>
                   <option value="">{isLoadingCategories ? 'Memuat...' : 'Pilih Kategori'}</option>
                   {categories?.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.categoryName}</option>)}
                 </select>
               </div>
-              <div><label className="block text-sm font-semibold">Maksimal Partisipan</label><input name="maxParticipants" type="number" value={formData.maxParticipants} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Maksimal Partisipan</label>
+                <input name="maxParticipants" type="number" value={formData.maxParticipants} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div><label className="block text-sm font-semibold">Tanggal</label><input name="eventDate" type="date" value={formData.eventDate} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm font-semibold">Waktu</label><input name="eventTime" type="time" value={formData.eventTime} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Tanggal</label>
+                <input name="eventDate" type="date" value={formData.eventDate} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Waktu</label>
+                <input name="eventTime" type="time" value={formData.eventTime} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+              </div>
             </div>
-            <div><label className="block text-sm font-semibold">Lokasi</label><input name="location" value={formData.location} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-            <div><label className="block text-sm font-semibold">Deskripsi</label><textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-            <div><label className="block text-sm font-semibold">Yang Dibawa</label><textarea name="requiredItems" value={formData.requiredItems} onChange={handleChange} rows={4} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-            <div><label className="block text-sm font-semibold">Yang Disediakan</label><textarea name="providedItems" value={formData.providedItems} onChange={handleChange} rows={4} className="w-full mt-1 px-4 py-2 border rounded-lg" /></div>
-            <div><label className="block text-sm font-semibold">Gambar</label>
-              <div className="mt-1 flex items-center gap-4">
-                {imagePreview && <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />}
-                <label htmlFor="event-file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
-                  <UploadCloud size={24} className="mb-2" />
-                  <span>{imageFile ? imageFile.name : 'Ganti gambar'}</span>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Lokasi</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Deskripsi</label>
+              <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Yang Dibawa</label>
+              <textarea name="requiredItems" value={formData.requiredItems} onChange={handleChange} rows={3} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Yang Disediakan</label>
+              <textarea name="providedItems" value={formData.providedItems} onChange={handleChange} rows={3} className="w-full mt-1 px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Gambar</label>
+              <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {imagePreview && <img src={imagePreview} alt="Preview" className="h-20 w-20 sm:h-24 sm:w-24 object-cover rounded-lg" />}
+                <label htmlFor="event-file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
+                  <UploadCloud size={20} className="mb-2" />
+                  <span className="text-xs sm:text-sm">{imageFile ? imageFile.name : 'Ganti gambar'}</span>
                   <input id="event-file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
                 </label>
               </div>
             </div>
             {/* Gallery Edit */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</label>
-              <div className="mt-1 flex flex-wrap gap-4">
+              <div className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</div>
+              <div className="mt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                 {/* Gallery lama (dari API) */}
                 {galleryPreviews.map((src, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-2">
-                    <img src={src} alt={`Preview Gallery ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg" />
+                  <div key={`existing-${idx}`} className="flex flex-col items-center gap-2">
+                    <img src={src} alt={`Preview Gallery ${idx + 1}`} className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-lg" />
                     <button
                       type="button"
                       onClick={() => handleRemoveOldGalleryImage(idx)}
@@ -297,10 +323,10 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
                 {/* Gallery baru (belum upload) */}
                 {gallery.map((file, idx) => (
                   !galleryPreviews[idx] && (
-                    <div key={`new-${idx}`} className="flex flex-col items-center gap-2">
-                      <label htmlFor={`gallery-upload-edit-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 min-w-[100px]">
-                        <UploadCloud size={20} className="mb-1"/>
-                        <span className="text-xs">{file ? file.name : 'Pilih gambar'}</span>
+                    <div key={`new-${idx}-${file?.name || 'empty'}`} className="flex flex-col items-center gap-2">
+                      <label htmlFor={`gallery-upload-edit-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20">
+                        <UploadCloud size={16} className="mb-1"/>
+                        <span className="text-xs hidden sm:block">{file ? file.name.substring(0,8)+"..." : 'Pilih'}</span>
                         <input
                           id={`gallery-upload-edit-${idx}`}
                           type="file"
@@ -325,23 +351,23 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
                   <button
                     type="button"
                     onClick={handleAddGalleryInput}
-                    className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 min-w-[100px] h-20"
+                    className="flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20"
                     title="Tambah gambar gallery"
                   >
-                    <span className="text-3xl font-bold">+</span>
-                    <span className="text-xs mt-1">Tambah Gambar</span>
+                    <span className="text-xl sm:text-2xl font-bold">+</span>
+                    <span className="text-xs hidden sm:block">Tambah</span>
                   </button>
                 )}
               </div>
             </div>
             {/* Map Edit */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Tandai Lokasi Event di Map</label>
+              <div className="block text-sm font-semibold mb-2">Tandai Lokasi Event di Map</div>
               <div className="mb-2">
                 <MapContainer
-                  center={latitude && longitude ? [parseFloat(latitude), parseFloat(longitude)] : [-6.2, 106.8]}
+                  center={latitude && longitude ? [parseFloat(latitude), parseFloat(longitude)] : [-6.2, 106.8] as [number, number]}
                   zoom={13}
-                  style={{ height: '300px', width: '100%' }}
+                  style={{ height: '250px', width: '100%' }}
                   scrollWheelZoom={true}
                 >
                   <TileLayer
@@ -356,15 +382,15 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, eventI
                   />
                 </MapContainer>
               </div>
-              <div className="flex gap-4 mt-2">
-                <input type="text" name="latitude" value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" className="px-4 py-2 border rounded-lg" required />
-                <input type="text" name="longitude" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" className="px-4 py-2 border rounded-lg" required />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                <input type="text" name="latitude" value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" className="px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" required />
+                <input type="text" name="longitude" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" className="px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base" required />
               </div>
               <p className="text-xs text-gray-500 mt-1">Klik pada map untuk memilih lokasi event. Latitude dan longitude akan terisi otomatis.</p>
             </div>
-            <div className="flex justify-end gap-4 pt-4">
-              <button type="button" onClick={onClose} className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Batal</button>
-              <button type="submit" disabled={mutation.isPending} className="px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
+              <button type="button" onClick={onClose} className="px-4 sm:px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100 text-sm sm:text-base">Batal</button>
+              <button type="submit" disabled={mutation.isPending} className="px-4 sm:px-6 py-2 bg-[#1A3A53] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400 text-sm sm:text-base">
                 {mutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>

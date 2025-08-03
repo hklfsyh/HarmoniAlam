@@ -196,33 +196,33 @@ const CreateEventPage: React.FC = () => {
     <>
       <div className="bg-slate-50 min-h-screen">
         <Navbar />
-        <main className="container mx-auto px-6 py-12 mt-16">
+        <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 mt-16">
           <div className="max-w-3xl mx-auto">
-            <Link to="/organizer" className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-6">
+            <Link to="/organizer" className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-4 sm:mb-6">
               <ArrowLeft size={20} />
               Kembali ke Dashboard
             </Link>
-            <h1 className="text-4xl font-bold text-[#1A3A53]">Buat Event Lingkungan</h1>
-            <p className="mt-2 text-gray-600">Buat event lingkungan baru dan ajak komunitas untuk berpartisipasi.</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1A3A53]">Buat Event Lingkungan</h1>
+            <p className="mt-2 text-gray-600 text-sm sm:text-base">Buat event lingkungan baru dan ajak komunitas untuk berpartisipasi.</p>
           </div>
 
-          <div className="bg-white p-8 md:p-10 rounded-xl shadow-lg w-full max-w-3xl mx-auto mt-8">
-            <h2 className="text-2xl font-bold text-[#1A3A53] mb-8">Buat Event Baru</h2>
-            <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-10 rounded-xl shadow-lg w-full max-w-3xl mx-auto mt-6 sm:mt-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1A3A53] mb-6 sm:mb-8">Buat Event Baru</h2>
+            <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label className="block text-sm font-semibold">Judul Event</label>
-                <input name="title" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                <label className="block text-sm font-semibold mb-2">Judul Event</label>
+                <input name="title" onChange={handleChange} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                 {formErrors.title && <p className="text-xs text-red-600 mt-1">{formErrors.title}</p>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-semibold">Kategori Event</label>
+                  <label className="block text-sm font-semibold mb-2">Kategori Event</label>
                   <select
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border rounded-lg bg-white"
+                    className="w-full px-3 sm:px-4 py-2 border rounded-lg bg-white text-sm sm:text-base"
                   >
                     <option value="" hidden>Pilih Kategori</option>
                     {categories?.map(cat => (
@@ -234,20 +234,20 @@ const CreateEventPage: React.FC = () => {
                   {formErrors.category_id && <p className="text-xs text-red-600 mt-1">{formErrors.category_id}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold">Maksimal Partisipan</label>
-                  <input name="maxParticipants" type="number" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  <label className="block text-sm font-semibold mb-2">Maksimal Partisipan</label>
+                  <input name="maxParticipants" type="number" onChange={handleChange} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                   {formErrors.maxParticipants && <p className="text-xs text-red-600 mt-1">{formErrors.maxParticipants}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-semibold">Tanggal Event</label>
-                  <input name="eventDate" type="date" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  <label className="block text-sm font-semibold mb-2">Tanggal Event</label>
+                  <input name="eventDate" type="date" onChange={handleChange} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                   {formErrors.eventDate && <p className="text-xs text-red-600 mt-1">{formErrors.eventDate}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold">Waktu Event</label>
-                  <input name="eventTime" type="time" onChange={handleChange} required className="w-full px-4 py-2 border rounded-lg"/>
+                  <label className="block text-sm font-semibold mb-2">Waktu Event</label>
+                  <input name="eventTime" type="time" onChange={handleChange} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
                   {formErrors.eventTime && <p className="text-xs text-red-600 mt-1">{formErrors.eventTime}</p>}
                 </div>
               </div>

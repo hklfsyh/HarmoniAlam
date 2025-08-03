@@ -158,35 +158,35 @@ const CreateArticlePage: React.FC = () => {
   return (
     <>
       <div className="flex flex-col min-h-screen bg-slate-50">
-        <main className="flex-grow container mx-auto px-6 py-12 mt-16">
+        <main className="flex-grow container mx-auto px-4 sm:px-6 py-8 sm:py-12 mt-16">
           <div className="max-w-3xl mx-auto">
             {backPath ? (
-              <Link to={backPath} className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-6">
+              <Link to={backPath} className="inline-flex items-center gap-2 text-gray-600 hover:text-[#1A3A53] font-semibold mb-4 sm:mb-6">
                 <ArrowLeft size={20} />
                 {backText}
               </Link>
             ) : (
-              <div className="text-center mb-6">
-                <h1 className="text-4xl md:text-5xl font-bold text-[#79B829]">
+              <div className="text-center mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#79B829]">
                   Tulis Artikel Lingkungan
                 </h1>
-                <p className="mt-3 text-lg text-gray-600">
+                <p className="mt-3 text-base sm:text-lg text-gray-600">
                   Bagikan pengetahuan dan tips tentang lingkungan kepada komunitas melalui artikel yang informatif
                 </p>
               </div>
             )}
           </div>
 
-          <div className="bg-white p-8 md:p-10 rounded-xl shadow-lg w-full max-w-3xl mx-auto">
-             <h2 className="text-2xl font-bold text-[#1A3A53] mb-8">Tulis Artikel Baru</h2>
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-10 rounded-xl shadow-lg w-full max-w-3xl mx-auto">
+             <h2 className="text-xl sm:text-2xl font-bold text-[#1A3A53] mb-6 sm:mb-8">Tulis Artikel Baru</h2>
+            <form className="space-y-4 sm:space-y-6" onSubmit={(e) => e.preventDefault()}>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">Judul Artikel</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-4 py-2 border rounded-lg"/>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">Kategori Artikel</label>
-                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required className="w-full px-4 py-2 border rounded-lg bg-white">
+                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required className="w-full px-3 sm:px-4 py-2 border rounded-lg bg-white text-sm sm:text-base">
                   <option value="" disabled>{isLoadingCategories ? 'Memuat...' : 'Pilih Kategori'}</option>
                   {categories?.map(cat => (
                     <option key={cat.category_id} value={cat.category_id}>{cat.categoryName}</option>
@@ -195,36 +195,36 @@ const CreateArticlePage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">Ringkasan Artikel</label>
-                <textarea value={summary} onChange={(e) => setSummary(e.target.value)} required rows={4} className="w-full px-4 py-2 border rounded-lg"/>
+                <textarea value={summary} onChange={(e) => setSummary(e.target.value)} required rows={3} className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">Konten Artikel</label>
-                <textarea value={content} onChange={(e) => setContent(e.target.value)} required rows={8} className="w-full px-4 py-2 border rounded-lg"/>
+                <textarea value={content} onChange={(e) => setContent(e.target.value)} required rows={6} className="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"/>
               </div>
               
               <div>
                 <label className="block text-sm font-semibold mb-2">Gambar</label>
-                <div className="mt-1 flex items-center gap-4">
-                  {imagePreview && <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />}
-                  <label htmlFor="file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
-                    <UploadCloud size={24} className="mb-2"/>
-                    <span>{image ? image.name : 'Klik untuk memilih gambar'}</span>
+                <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  {imagePreview && <img src={imagePreview} alt="Preview" className="h-20 w-20 sm:h-24 sm:w-24 object-cover rounded-lg" />}
+                  <label htmlFor="file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
+                    <UploadCloud size={20} className="mb-2"/>
+                    <span className="text-xs sm:text-sm">{image ? image.name : 'Klik untuk memilih gambar'}</span>
                     <input id="file-upload" type="file" className="sr-only" onChange={handleFileChange} required accept="image/*" />
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</label>
-                <div className="mt-1 flex flex-wrap gap-4">
+                <div className="block text-sm font-semibold mb-2">Gambar Gallery (maksimal 10 gambar)</div>
+                <div className="mt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                   {gallery.map((file, idx) => (
-                    <div key={idx} className="flex flex-col items-center gap-2">
+                    <div key={`gallery-${idx}`} className="flex flex-col items-center gap-2">
                       {galleryPreviews[idx] && (
-                        <img src={galleryPreviews[idx]} alt={`Preview Gallery ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg" />
+                        <img src={galleryPreviews[idx]} alt={`Preview Gallery ${idx + 1}`} className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-lg" />
                       )}
-                      <label htmlFor={`gallery-upload-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 min-w-[100px]">
-                        <UploadCloud size={20} className="mb-1"/>
-                        <span className="text-xs">{file ? file.name : 'Pilih gambar'}</span>
+                      <label htmlFor={`gallery-upload-${idx}`} className="cursor-pointer flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20">
+                        <UploadCloud size={16} className="mb-1"/>
+                        <span className="text-xs hidden sm:block">{file ? file.name.substring(0,8)+"..." : 'Pilih'}</span>
                         <input
                           id={`gallery-upload-${idx}`}
                           type="file"
@@ -248,22 +248,22 @@ const CreateArticlePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleAddGalleryInput}
-                      className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 min-w-[100px] h-20"
+                      className="flex flex-col items-center justify-center p-2 border-2 border-dashed rounded-lg text-gray-500 hover:bg-slate-50 h-16 w-16 sm:h-20 sm:w-20"
                       title="Tambah gambar gallery"
                     >
-                      <span className="text-3xl font-bold">+</span>
-                      <span className="text-xs mt-1">Tambah Gambar</span>
+                      <span className="text-xl sm:text-2xl font-bold">+</span>
+                      <span className="text-xs hidden sm:block">Tambah</span>
                     </button>
                   )}
                 </div>
               </div>
               
-              <div className="flex justify-end gap-4 pt-4">
-                <button type="button" onClick={handleReset} className="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100">Batal</button>
-                <button type="button" onClick={() => handleSubmit('draft')} disabled={mutation.isPending} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:bg-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
+                <button type="button" onClick={handleReset} className="px-4 sm:px-6 py-2 border rounded-lg font-semibold hover:bg-gray-100 text-sm sm:text-base">Batal</button>
+                <button type="button" onClick={() => handleSubmit('draft')} disabled={mutation.isPending} className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:bg-gray-200 text-sm sm:text-base">
                     {mutation.isPending ? 'Menyimpan...' : 'Simpan Draft'}
                 </button>
-                <button type="button" onClick={() => handleSubmit('publish')} disabled={mutation.isPending} className="px-6 py-2 bg-[#79B829] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400">
+                <button type="button" onClick={() => handleSubmit('publish')} disabled={mutation.isPending} className="px-4 sm:px-6 py-2 bg-[#79B829] text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:bg-slate-400 text-sm sm:text-base">
                     {mutation.isPending ? 'Memublikasikan...' : 'Publikasikan Artikel'}
                 </button>
               </div>

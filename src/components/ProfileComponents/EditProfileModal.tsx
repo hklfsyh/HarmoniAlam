@@ -52,6 +52,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, on
     mutationFn: updateUserProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['volunteerProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['volunteerProfileNav'] }); // Tambahkan untuk navbar
       onSuccess();
     },
     onError: (error: any) => {

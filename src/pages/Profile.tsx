@@ -45,6 +45,7 @@ const ProfilePage: React.FC = () => {
     setIsSuccessModalOpen(false);
     // Refetch semua data yang mungkin telah berubah
     queryClient.invalidateQueries({ queryKey: ['volunteerProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['volunteerProfileNav'] }); // Tambahkan untuk navbar
     queryClient.invalidateQueries({ queryKey: ['myArticles'] });
     queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
     // Refetch detail artikel jika sedang dilihat
@@ -68,6 +69,7 @@ const ProfilePage: React.FC = () => {
     setIsErrorModalOpen(false);
     // Refetch data untuk memastikan konsistensi
     queryClient.invalidateQueries({ queryKey: ['volunteerProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['volunteerProfileNav'] }); // Tambahkan untuk navbar
     queryClient.invalidateQueries({ queryKey: ['myArticles'] });
     queryClient.invalidateQueries({ queryKey: ['myRegisteredEvents'] });
     // Refetch detail artikel jika sedang dilihat

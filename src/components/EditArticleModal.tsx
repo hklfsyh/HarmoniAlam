@@ -102,6 +102,17 @@ const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose, ar
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           const file = e.target.files[0];
+          const fileType = file.type;
+          const fileName = file.name.toLowerCase();
+          
+          // Validasi hanya JPG, JPEG, PNG yang diizinkan
+          if (!fileType.startsWith('image/') || 
+              (!fileName.endsWith('.jpg') && !fileName.endsWith('.jpeg') && !fileName.endsWith('.png'))) {
+            alert('Gambar harus berformat JPG, JPEG, atau PNG. Silakan pilih file dengan format yang sesuai.');
+            e.target.value = ''; // Reset input file
+            return;
+          }
+          
           setImageFile(file);
           setImagePreview(URL.createObjectURL(file));
       }
@@ -111,6 +122,17 @@ const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose, ar
   const handleGalleryChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const fileType = file.type;
+      const fileName = file.name.toLowerCase();
+      
+      // Validasi hanya JPG, JPEG, PNG yang diizinkan
+      if (!fileType.startsWith('image/') || 
+          (!fileName.endsWith('.jpg') && !fileName.endsWith('.jpeg') && !fileName.endsWith('.png'))) {
+        alert('Gambar gallery harus berformat JPG, JPEG, atau PNG. Silakan pilih file dengan format yang sesuai.');
+        e.target.value = ''; // Reset input file
+        return;
+      }
+      
       const newGallery = [...gallery];
       newGallery[idx] = file;
       setGallery(newGallery);
@@ -204,7 +226,7 @@ const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose, ar
                     <label htmlFor="reusable-file-upload" className="flex-grow cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50">
                       <UploadCloud size={20} className="mb-2"/>
                       <span className="text-xs sm:text-sm">{imageFile ? imageFile.name : 'Klik untuk mengganti gambar'}</span>
-                      <input id="reusable-file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                      <input id="reusable-file-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
                     </label>
                   </div>
                 </div>
@@ -238,7 +260,7 @@ const EditArticleModal: React.FC<EditArticleModalProps> = ({ isOpen, onClose, ar
                               type="file"
                               className="sr-only"
                               onChange={(e) => handleGalleryChange(idx, e)}
-                              accept="image/*"
+                              accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                             />
                           </label>
                           {gallery.length > 1 && (

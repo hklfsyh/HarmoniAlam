@@ -107,7 +107,18 @@ const FormPengajuan: React.FC<FormPengajuanProps> = ({ onSuccess, onFailure }) =
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setDocumentFile(e.target.files[0]);
+            const file = e.target.files[0];
+            const fileType = file.type;
+            const fileName = file.name.toLowerCase();
+            
+            // Validasi hanya PDF yang diizinkan
+            if (fileType !== 'application/pdf' && !fileName.endsWith('.pdf')) {
+                alert('Dokumen pendukung harus berformat PDF. Silakan pilih file PDF.');
+                e.target.value = ''; // Reset input file
+                return;
+            }
+            
+            setDocumentFile(file);
         }
     };
 
@@ -163,11 +174,11 @@ const FormPengajuan: React.FC<FormPengajuanProps> = ({ onSuccess, onFailure }) =
                 <TextAreaField name="orgDescription" label="Deskripsi Organisasi" value={formData.orgDescription} onChange={handleChange} error={errors.orgDescription} rows={6} />
                 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">Dokumen Legalitas (Contoh: KTP)</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">Dokumen Legalitas (Format: PDF)</label>
                     <label htmlFor="document-upload" className={`flex-grow cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 border-2 border-dashed rounded-lg text-center text-gray-500 hover:bg-slate-50 ${errors.document ? 'border-red-500' : 'border-gray-300'}`}>
                       <UploadCloud size={20} className="mb-2"/>
-                      <span className="text-xs sm:text-sm">{documentFile ? documentFile.name : 'Klik untuk memilih file'}</span>
-                      <input id="document-upload" name="document" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                      <span className="text-xs sm:text-sm">{documentFile ? documentFile.name : 'Klik untuk memilih file PDF'}</span>
+                      <input id="document-upload" name="document" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,application/pdf"/>
                     </label>
                     {errors.document && <p className="text-red-500 text-xs mt-1">{errors.document}</p>}
                 </div>

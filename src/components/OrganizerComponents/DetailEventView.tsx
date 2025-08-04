@@ -203,42 +203,44 @@ const PartisipanTab: React.FC<{ eventId: number }> = ({ eventId }) => {
             {isLoading && <p>Memuat daftar partisipan...</p>}
             {isError && <p className="text-red-500">Gagal memuat data: {error.message}</p>}
             {Array.isArray(volunteers) && (
-                <div className="border rounded-lg text-sm overflow-hidden">
-                    <div className="grid grid-cols-4 gap-4 px-4 py-3 bg-slate-50 font-semibold text-gray-500 border-b">
-                        <div>Nama</div>
-                        <div>Email</div>
-                        <div>Tanggal Daftar</div>
-                        <div>Aksi</div>
-                    </div>
-                    <div className="divide-y">
-                        {volunteers.length > 0 ? (
-                            volunteers.map((reg) => (
-                                <div key={reg.registration_id} className="grid grid-cols-4 gap-4 px-4 py-3 items-center">
-                                    <div className="font-semibold text-[#1A3A53]">{reg.volunteer.firstName} {reg.volunteer.lastName}</div>
-                                    <div>{reg.volunteer.email}</div>
-                                    <div>{new Date(reg.registeredAt).toLocaleDateString('id-ID')}</div>
-                                    <div>
-                                        <button
-                                            type="button"
-                                            className="inline-flex items-center justify-center p-2 rounded-full bg-[#eaf7e1] hover:bg-[#79B829] transition cursor-pointer"
-                                            title="Kirim Email"
-                                            onClick={() => {
-                                              setSelectedVolunteer({
-                                                id: reg.volunteer.id,
-                                                name: `${reg.volunteer.firstName} ${reg.volunteer.lastName}`,
-                                                email: reg.volunteer.email
-                                              });
-                                              setIsSingleEmailModalOpen(true);
-                                            }}
-                                        >
-                                            <Mail size={18} className="text-[#1A3A53] group-hover:text-white" />
-                                        </button>
+                <div className="border rounded-lg text-sm overflow-x-auto">
+                    <div className="min-w-full">
+                        <div className="grid grid-cols-4 gap-2 sm:gap-4 md:gap-6 px-4 py-3 bg-slate-50 font-semibold text-gray-500 border-b" style={{ minWidth: '600px' }}>
+                            <div>Nama</div>
+                            <div>Email</div>
+                            <div>Tanggal Daftar</div>
+                            <div>Aksi</div>
+                        </div>
+                        <div className="divide-y">
+                            {volunteers.length > 0 ? (
+                                volunteers.map((reg) => (
+                                    <div key={reg.registration_id} className="grid grid-cols-4 gap-2 sm:gap-4 md:gap-6 px-4 py-3 items-center" style={{ minWidth: '600px' }}>
+                                        <div className="font-semibold text-[#1A3A53] break-words">{reg.volunteer.firstName} {reg.volunteer.lastName}</div>
+                                        <div className="break-all text-xs sm:text-sm">{reg.volunteer.email}</div>
+                                        <div className="text-xs sm:text-sm">{new Date(reg.registeredAt).toLocaleDateString('id-ID')}</div>
+                                        <div>
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center justify-center p-2 rounded-full bg-[#eaf7e1] hover:bg-[#79B829] transition cursor-pointer"
+                                                title="Kirim Email"
+                                                onClick={() => {
+                                                  setSelectedVolunteer({
+                                                    id: reg.registration_id,
+                                                    name: `${reg.volunteer.firstName} ${reg.volunteer.lastName}`,
+                                                    email: reg.volunteer.email
+                                                  });
+                                                  setIsSingleEmailModalOpen(true);
+                                                }}
+                                            >
+                                                <Mail size={18} className="text-[#1A3A53] group-hover:text-white" />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="p-4 text-gray-500">Belum ada partisipan yang mendaftar.</p>
-                        )}
+                                ))
+                            ) : (
+                                <p className="p-4 text-gray-500">Belum ada partisipan yang mendaftar.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
